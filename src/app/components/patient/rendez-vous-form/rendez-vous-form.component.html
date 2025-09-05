@@ -1,4 +1,3 @@
-
 <div class="rdv-form-container" *ngIf="!isLoading">
   <div class="form-header">
     <button mat-icon-button (click)="goBack()" class="back-button">
@@ -6,7 +5,8 @@
     </button>
     <div class="header-content">
       <h1>Prendre un rendez-vous</h1>
-      <p>Réservez votre consultation avec Dr. {{ medecin?.user.nom }} {{ medecin?.user.prenom }}</p>
+      <!-- CORRECTION: Gestion des valeurs undefined -->
+      <p>Réservez votre consultation avec Dr. {{ medecin?.user?.nom || 'N/A' }} {{ medecin?.user?.prenom || '' }}</p>
     </div>
   </div>
 
@@ -18,9 +18,10 @@
           <mat-icon>person</mat-icon>
         </div>
         <div class="medecin-details">
-          <h3>Dr. {{ medecin?.user.nom }} {{ medecin?.user.prenom }}</h3>
-          <p class="specialite">{{ medecin?.specialite.nom }}</p>
-          <p class="experience">{{ medecin?.experience_annees }} ans d'expérience</p>
+          <!-- CORRECTION: Gestion des valeurs undefined -->
+          <h3>Dr. {{ medecin?.user?.nom || 'N/A' }} {{ medecin?.user?.prenom || '' }}</h3>
+          <p class="specialite">{{ medecin?.specialite?.nom || 'Spécialité non précisée' }}</p>
+          <p class="experience">{{ medecin?.experience_annees || 0 }} ans d'expérience</p>
           <div class="cabinet-info" *ngIf="medecin?.cabinet_nom">
             <mat-icon>location_on</mat-icon>
             <span>{{ medecin?.cabinet_nom }}</span>
@@ -28,7 +29,7 @@
         </div>
         <div class="consultation-info">
           <div class="price">{{ formatPrix(medecin?.prix_consultation || 0) }}</div>
-          <div class="duration">{{ medecin?.duree_consultation }} minutes</div>
+          <div class="duration">{{ medecin?.duree_consultation || 30 }} minutes</div>
         </div>
       </div>
     </mat-card-content>
@@ -149,15 +150,17 @@
             </div>
             <div class="summary-item">
               <mat-icon>person</mat-icon>
-              <span>Dr. {{ medecin?.user.nom }} {{ medecin?.user.prenom }}</span>
+              <!-- CORRECTION: Gestion des valeurs undefined -->
+              <span>Dr. {{ medecin?.user?.nom || 'N/A' }} {{ medecin?.user?.prenom || '' }}</span>
             </div>
             <div class="summary-item">
               <mat-icon>medical_services</mat-icon>
-              <span>{{ medecin?.specialite.nom }}</span>
+              <!-- CORRECTION: Gestion des valeurs undefined -->
+              <span>{{ medecin?.specialite?.nom || 'Spécialité non précisée' }}</span>
             </div>
             <div class="summary-item">
               <mat-icon>schedule</mat-icon>
-              <span>{{ medecin?.duree_consultation }} minutes</span>
+              <span>{{ medecin?.duree_consultation || 30 }} minutes</span>
             </div>
             <div class="summary-item price-item">
               <mat-icon>attach_money</mat-icon>
@@ -190,5 +193,3 @@
   <mat-spinner></mat-spinner>
   <p>Chargement des informations du médecin...</p>
 </div>
-
-

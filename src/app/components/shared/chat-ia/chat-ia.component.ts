@@ -69,6 +69,14 @@ export class ChatIaComponent implements OnInit, AfterViewChecked {
     this.initializeChat();
   }
 
+  // CORRECTION: Nouvelle méthode pour gérer l'événement keydown avec le bon type
+  onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && event.ctrlKey) {
+      event.preventDefault();
+      this.onSubmit();
+    }
+  }
+
   onSubmit(): void {
     if (!this.chatForm.valid || this.isLoading) {
       return;

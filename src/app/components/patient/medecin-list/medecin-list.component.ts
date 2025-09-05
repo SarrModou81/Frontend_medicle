@@ -1,4 +1,4 @@
-// src/app/components/patient/medecin-list/medecin-list.component.ts - CORRIGÉ
+// src/app/components/patient/medecin-list/medecin-list.component.ts - CORRECTIONS
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -137,7 +137,8 @@ export class MedecinListComponent implements OnInit {
     });
   }
 
-  formatExperience(annees: number): string {
+  // CORRECTION: Fonction qui gère les valeurs undefined
+  formatExperience(annees: number | undefined): string {
     if (!annees || annees === 0) {
       return 'Nouveau';
     } else if (annees === 1) {

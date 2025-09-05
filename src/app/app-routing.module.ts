@@ -1,10 +1,6 @@
-// src/app/app-routing.module.ts - VERSION CORRIGÉE
+// src/app/app-routing.module.ts - VERSION TEMPORAIRE SANS GUARDS
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-
-// Guards
-import { AuthGuard } from './guards/auth.guard';
-import { RoleGuard } from './guards/role.guard';
 
 // Components
 import { LoginComponent } from './components/auth/login/login.component';
@@ -36,17 +32,17 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   
-  // Routes protégées avec authentification
+  // Routes SANS guards pour tester
   {
     path: 'dashboard',
     component: DashboardComponent,
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard], // TEMPORAIREMENT DÉSACTIVÉ
     children: [
-      // Routes Patient
+      // Routes Patient - SANS GUARDS
       {
         path: 'patient',
-        canActivate: [RoleGuard],
-        data: { expectedRoles: ['patient'] },
+        // canActivate: [RoleGuard], // TEMPORAIREMENT DÉSACTIVÉ
+        // data: { expectedRoles: ['patient'] }, // TEMPORAIREMENT DÉSACTIVÉ
         children: [
           { path: '', component: PatientDashboardComponent },
           { path: 'medecins', component: MedecinListComponent },
@@ -57,11 +53,11 @@ const routes: Routes = [
         ]
       },
       
-      // Routes Médecin
+      // Routes Médecin - SANS GUARDS
       {
         path: 'medecin',
-        canActivate: [RoleGuard],
-        data: { expectedRoles: ['medecin'] },
+        // canActivate: [RoleGuard], // TEMPORAIREMENT DÉSACTIVÉ
+        // data: { expectedRoles: ['medecin'] }, // TEMPORAIREMENT DÉSACTIVÉ
         children: [
           { path: '', component: MedecinDashboardComponent },
           { path: 'rendez-vous', component: MedecinRendezVousComponent },
@@ -70,11 +66,11 @@ const routes: Routes = [
         ]
       },
       
-      // Routes Admin
+      // Routes Admin - SANS GUARDS
       {
         path: 'admin',
-        canActivate: [RoleGuard],
-        data: { expectedRoles: ['admin'] },
+        // canActivate: [RoleGuard], // TEMPORAIREMENT DÉSACTIVÉ
+        // data: { expectedRoles: ['admin'] }, // TEMPORAIREMENT DÉSACTIVÉ
         children: [
           { path: '', component: AdminDashboardComponent },
           { path: 'utilisateurs', component: AdminUsersComponent },
@@ -90,7 +86,9 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, { 
+    enableTracing: true // AJOUT DE LOGS DE ROUTING
+  })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

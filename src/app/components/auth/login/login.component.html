@@ -1,4 +1,3 @@
-
 <div class="login-container">
   <mat-card class="login-card">
     <mat-card-header>
@@ -53,6 +52,42 @@
           {{ isLoading ? 'Connexion...' : 'Se connecter' }}
         </button>
       </form>
+
+      <!-- BOUTONS DE TEST AJOUTÉS -->
+      <div class="test-buttons-section">
+        <p class="test-title">Tests rapides :</p>
+        <div class="test-buttons">
+          <button 
+            mat-stroked-button 
+            color="primary"
+            (click)="loginWithDemo('patient')"
+            [disabled]="isLoading"
+            class="test-button">
+            <mat-icon>person</mat-icon>
+            Patient
+          </button>
+          
+          <button 
+            mat-stroked-button 
+            color="accent"
+            (click)="loginWithDemo('medecin')"
+            [disabled]="isLoading"
+            class="test-button">
+            <mat-icon>medical_services</mat-icon>
+            Médecin
+          </button>
+          
+          <button 
+            mat-stroked-button 
+            color="warn"
+            (click)="loginWithDemo('admin')"
+            [disabled]="isLoading"
+            class="test-button">
+            <mat-icon>admin_panel_settings</mat-icon>
+            Admin
+          </button>
+        </div>
+      </div>
     </mat-card-content>
     
     <mat-card-actions class="text-center">

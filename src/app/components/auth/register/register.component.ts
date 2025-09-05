@@ -1,10 +1,10 @@
-// src/app/components/auth/register/register.component.ts
+// src/app/components/auth/register/register.component.ts - CORRIGÉ
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { AuthService } from '../../../services/auth.service';
-import { ApiService, Specialite } from '../../../services/api.service';
+import { AuthService, AuthResponse } from '../../../services/auth.service';
+import { ApiService, Specialite, ApiResponse } from '../../../services/api.service';
 
 @Component({
   selector: 'app-register',
@@ -113,12 +113,12 @@ export class RegisterComponent implements OnInit {
 
   private loadSpecialites(): void {
     this.apiService.getSpecialites().subscribe({
-      next: (response) => {
+      next: (response: ApiResponse<Specialite[]>) => {
         if (response.success && response.data) {
           this.specialites = response.data;
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Erreur lors du chargement des spécialités:', error);
       }
     });
@@ -140,19 +140,29 @@ export class RegisterComponent implements OnInit {
         delete formData.sexe;
       }
 
+      console.log('📝 Tentative d\'inscription avec:', formData);
+
       this.authService.register(formData).subscribe({
-        next: (response) => {
+        next: (response: AuthResponse) => {
+          console.log('📝 Réponse inscription reçue:', response);
           this.isLoading = false;
+          
           if (response.success) {
             this.snackBar.open('Inscription réussie ! Bienvenue !', 'Fermer', {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
             
-            this.redirectBasedOnRole(response.user.role);
+            console.log('📝 Inscription réussie, redirection vers:', response.user.role);
+            
+            // Redirection forcée comme pour le login
+            setTimeout(() => {
+              this.redirectBasedOnRole(response.user.role);
+            }, 500);
           }
         },
-        error: (error) => {
+        error: (error: any) => {
+          console.error('❌ Erreur inscription:', error);
           this.isLoading = false;
           
           let errorMessage = 'Erreur lors de l\'inscription';
@@ -178,18 +188,40 @@ export class RegisterComponent implements OnInit {
   }
 
   private redirectBasedOnRole(role: string): void {
+    console.log('🔄 redirectBasedOnRole appelée avec le rôle:', role);
+    
     switch (role) {
       case 'patient':
-        this.router.navigate(['/dashboard/patient']);
+        console.log('🔄 Redirection vers dashboard patient');
+        this.router.navigate(['/dashboard/patient']).then(success => {
+          console.log('Navigation patient réussie:', success);
+        }).catch(error => {
+          console.error('Erreur navigation patient:', error);
+        });
         break;
       case 'medecin':
-        this.router.navigate(['/dashboard/medecin']);
+        console.log('🔄 Redirection vers dashboard médecin');
+        this.router.navigate(['/dashboard/medecin']).then(success => {
+          console.log('Navigation médecin réussie:', success);
+        }).catch(error => {
+          console.error('Erreur navigation médecin:', error);
+        });
         break;
       case 'admin':
-        this.router.navigate(['/dashboard/admin']);
+        console.log('🔄 Redirection vers dashboard admin');
+        this.router.navigate(['/dashboard/admin']).then(success => {
+          console.log('Navigation admin réussie:', success);
+        }).catch(error => {
+          console.error('Erreur navigation admin:', error);
+        });
         break;
       default:
-        this.router.navigate(['/dashboard']);
+        console.log('🔄 Rôle non reconnu, redirection vers dashboard général');
+        this.router.navigate(['/dashboard']).then(success => {
+          console.log('Navigation dashboard général réussie:', success);
+        }).catch(error => {
+          console.error('Erreur navigation dashboard général:', error);
+        });
         break;
     }
   }

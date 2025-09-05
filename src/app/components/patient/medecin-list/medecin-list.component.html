@@ -75,8 +75,9 @@
               <mat-icon>person</mat-icon>
             </div>
             <div class="medecin-info">
-              <h3>Dr. {{ medecin?.user?.nom }} {{ medecin?.user?.prenom }}</h3>
-              <p class="specialite">{{ medecin?.specialite?.nom }}</p>
+              <h3>Dr. {{ medecin?.user?.nom || 'N/A' }} {{ medecin?.user?.prenom || '' }}</h3>
+              <p class="specialite">{{ medecin?.specialite?.nom || 'Spécialité non précisée' }}</p>
+              <!-- CORRECTION: La fonction formatExperience gère maintenant les valeurs undefined -->
               <p class="experience">{{ formatExperience(medecin?.experience_annees) }}</p>
             </div>
             <div class="medecin-status">
@@ -115,9 +116,10 @@
             </div>
           </div>
 
-          <div class="prochaine-dispo" *ngIf="medecin?.prochaine_disponibilite">
+          <!-- CORRECTION: Vérifier que prochaine_disponibilite existe avant d'accéder à ses propriétés -->
+          <div class="prochaine-dispo" *ngIf="medecin?.prochaine_disponibilite?.date && medecin?.prochaine_disponibilite?.heure">
             <mat-icon>schedule</mat-icon>
-            <span>Prochaine disponibilité : {{ medecin.prochaine_disponibilite.date }} à {{ medecin.prochaine_disponibilite.heure }}</span>
+            <span>Prochaine disponibilité : {{ medecin.prochaine_disponibilite?.date }} à {{ medecin.prochaine_disponibilite?.heure }}</span>
           </div>
         </mat-card-content>
 

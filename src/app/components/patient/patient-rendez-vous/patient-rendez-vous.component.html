@@ -68,8 +68,9 @@
             <mat-header-cell *matHeaderCellDef>Médecin</mat-header-cell>
             <mat-cell *matCellDef="let rdv">
               <div class="medecin-cell">
-                <div class="medecin-name">Dr. {{ rdv.medecin.user.nom }} {{ rdv.medecin.user.prenom }}</div>
-                <div class="cabinet-info" *ngIf="rdv.medecin.cabinet_nom">{{ rdv.medecin.cabinet_nom }}</div>
+                <!-- CORRECTION: Gestion des valeurs undefined -->
+                <div class="medecin-name">Dr. {{ rdv.medecin?.user?.nom || 'N/A' }} {{ rdv.medecin?.user?.prenom || '' }}</div>
+                <div class="cabinet-info" *ngIf="rdv.medecin?.cabinet_nom">{{ rdv.medecin.cabinet_nom }}</div>
               </div>
             </mat-cell>
           </ng-container>
@@ -78,7 +79,8 @@
           <ng-container matColumnDef="specialite">
             <mat-header-cell *matHeaderCellDef>Spécialité</mat-header-cell>
             <mat-cell *matCellDef="let rdv">
-              <mat-chip class="specialite-chip">{{ rdv.medecin.specialite.nom }}</mat-chip>
+              <!-- CORRECTION: Gestion des valeurs undefined -->
+              <mat-chip class="specialite-chip">{{ rdv.medecin?.specialite?.nom || 'Non précisée' }}</mat-chip>
             </mat-cell>
           </ng-container>
 
@@ -154,9 +156,10 @@
 
           <div class="rdv-mobile-content">
             <div class="medecin-info">
-              <h3>Dr. {{ rdv.medecin.user.nom }} {{ rdv.medecin.user.prenom }}</h3>
-              <p class="specialite">{{ rdv.medecin.specialite.nom }}</p>
-              <p class="cabinet" *ngIf="rdv.medecin.cabinet_nom">{{ rdv.medecin.cabinet_nom }}</p>
+              <!-- CORRECTION: Gestion des valeurs undefined -->
+              <h3>Dr. {{ rdv.medecin?.user?.nom || 'N/A' }} {{ rdv.medecin?.user?.prenom || '' }}</h3>
+              <p class="specialite">{{ rdv.medecin?.specialite?.nom || 'Non précisée' }}</p>
+              <p class="cabinet" *ngIf="rdv.medecin?.cabinet_nom">{{ rdv.medecin?.cabinet_nom }}</p>
             </div>
 
             <div class="paiement-info">
