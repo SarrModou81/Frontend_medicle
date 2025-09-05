@@ -1,0 +1,132 @@
+<!-- src/app/components/patient/paiement/paiement.component.html -->
+<div class="paiement-container" *ngIf="!isLoading">
+  <div class="page-header">
+    <button mat-icon-button (click)="retourner()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Paiement de la consultation</h1>
+  </div>
+
+  <!-- Récapitulatif du rendez-vous -->
+  <mat-card class="rdv-summary-card">
+    <mat-card-header>
+      <mat-card-title>Récapitulatif de votre rendez-vous</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="summary-row">
+        <span class="label">Médecin :</span>
+        <span class="value">Dr. {{ rendezVous?.medecin?.user?.nom }} {{ rendezVous?.medecin?.user?.prenom }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Spécialité :</span>
+        <span class="value">{{ rendezVous?.medecin?.specialite?.nom }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Date :</span>
+        <span class="value">{{ rendezVous?.date_heure | date:'EEEE d MMMM yyyy':'fr' }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Heure :</span>
+        <span class="value">{{ rendezVous?.date_heure | date:'HH:mm':'fr' }}</span>
+      </div>
+      <div class="summary-row total">
+        <span class="label">Montant à payer :</span>
+        <span class="value price">{{ formatPrix(rendezVous?.montant || 0) }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Formulaire de paiement -->
+  <mat-card class="payment-card">
+    <mat-card-header>
+      <mat-card-title>Informations de paiement</mat-card-title>
+      <mat-card-subtitle>Paiement sécurisé par Stripe</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="paiementForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Méthode de paiement -->
+        <div class="payment-method-section">
+          <h3>Méthode de paiement</h3>
+          <mat-radio-group formControlName="methode">
+            <mat-radio-button value="stripe" class="payment-option">
+              <div class="payment-content">
+                <mat-icon>credit_card</mat-icon>
+                <span>Carte bancaire</span>
+                <div class="card-icons">
+                  <img src="assets/images/visa.png" alt="Visa" class="card-icon">
+                  <img src="assets/images/mastercard.png" alt="Mastercard" class="card-icon">
+                </div>
+              </div>
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <!-- Formulaire de carte -->
+        <div class="card-section" *ngIf="paiementForm.get('methode')?.value === 'stripe'">
+          <h3>Informations de carte</h3>
+          <div class="card-element-container">
+            <div id="card-element" class="card-element">
+              <!-- Stripe Elements injectera le formulaire de carte ici -->
+            </div>
+            <div id="card-errors" class="card-errors" role="alert"></div>
+          </div>
+        </div>
+
+        <!-- Sécurité -->
+        <div class="security-section">
+          <div class="security-info">
+            <mat-icon>security</mat-icon>
+            <div>
+              <p><strong>Paiement 100% sécurisé</strong></p>
+              <p>Vos données bancaires sont chiffrées et ne sont jamais stockées sur nos serveurs.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conditions -->
+        <div class="conditions-section">
+          <mat-checkbox formControlName="accepteConditions">
+            J'accepte les <a href="#" target="_blank">conditions générales de vente</a> et 
+            la <a href="#" target="_blank">politique de confidentialité</a>
+          </mat-checkbox>
+        </div>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="payment-actions">
+      <button mat-button (click)="retourner()" [disabled]="isProcessing">
+        Annuler
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              (click)="onSubmit()"
+              [disabled]="!paiementForm.valid || isProcessing"
+              class="pay-button">
+        <mat-icon *ngIf="isProcessing" class="spinner">refresh</mat-icon>
+        {{ isProcessing ? 'Traitement...' : 'Payer ' + formatPrix(rendezVous?.montant || 0) }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Informations complémentaires -->
+  <mat-card class="info-card">
+    <mat-card-content>
+      <h3>Informations importantes</h3>
+      <ul>
+        <li>Votre rendez-vous sera confirmé après validation du paiement</li>
+        <li>En cas d'annulation, le remboursement se fera dans un délai de 3 à 5 jours ouvrés</li>
+        <li>Un justificatif PDF sera automatiquement généré après votre consultation</li>
+        <li>Vous recevrez une confirmation par email</li>
+      </ul>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Chargement -->
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner></mat-spinner>
+  <p>Chargement...</p>
+</div>
