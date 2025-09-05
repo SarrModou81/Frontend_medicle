@@ -1,4 +1,4 @@
-<!-- src/app/components/medecin/medecin-dashboard/medecin-dashboard.component.html -->
+<!-- src/app/components/medecin/medecin-dashboard/medecin-dashboard.component.html - CORRIGÉ -->
 <div class="medecin-dashboard">
   <div class="dashboard-header">
     <h1>Bienvenue, Dr. {{ currentUser?.nom }} !</h1>
@@ -126,7 +126,7 @@
                 </button>
                 
                 <button mat-button 
-                        *ngIf="rdv.statut === 'confirme' && new Date(rdv.date_heure) <= new Date()"
+                        *ngIf="rdv.statut === 'confirme' && peutTerminer(rdv)"
                         color="accent" 
                         (click)="terminerRendezVous(rdv)">
                   <mat-icon>done_all</mat-icon>

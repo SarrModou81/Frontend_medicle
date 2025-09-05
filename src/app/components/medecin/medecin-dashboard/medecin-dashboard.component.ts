@@ -130,6 +130,17 @@ export class MedecinDashboardComponent implements OnInit {
     });
   }
 
+  // Méthode pour vérifier si un rendez-vous peut être terminé
+  peutTerminer(rdv: RendezVous): boolean {
+    if (rdv.statut !== 'confirme') return false;
+    return new Date(rdv.date_heure) <= new Date();
+  }
+
+  // Méthode pour vérifier si la date est passée
+  isAppointmentPassed(dateHeure: string): boolean {
+    return new Date(dateHeure) <= new Date();
+  }
+
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }

@@ -1,4 +1,4 @@
-
+<!-- src/app/components/patient/medecin-list/medecin-list.component.html - CORRIGÉ -->
 <div class="medecin-list-container">
   <div class="page-header">
     <h1>Rechercher un médecin</h1>
@@ -75,37 +75,36 @@
               <mat-icon>person</mat-icon>
             </div>
             <div class="medecin-info">
-              <h3>Dr. {{ medecin.user.nom }} {{ medecin.user.prenom }}</h3>
-              <p class="specialite">{{ medecin.specialite.nom }}</p>
-              <p class="experience">{{ formatExperience(medecin.experience_annees) }}</p>
+              <h3>Dr. {{ medecin?.user?.nom }} {{ medecin?.user?.prenom }}</h3>
+              <p class="specialite">{{ medecin?.specialite?.nom }}</p>
+              <p class="experience">{{ formatExperience(medecin?.experience_annees) }}</p>
             </div>
             <div class="medecin-status">
-              <mat-chip [selected]="medecin.disponible" 
-                       [class]="medecin.disponible ? 'status-available' : 'status-unavailable'">
-                {{ medecin.disponible ? 'Disponible' : 'Non disponible' }}
+              <mat-chip [class]="medecin?.disponible ? 'status-available' : 'status-unavailable'">
+                {{ medecin?.disponible ? 'Disponible' : 'Non disponible' }}
               </mat-chip>
             </div>
           </div>
 
-          <div class="medecin-details" *ngIf="medecin.presentation">
+          <div class="medecin-details" *ngIf="medecin?.presentation">
             <p class="presentation">{{ medecin.presentation }}</p>
           </div>
 
-          <div class="medecin-location" *ngIf="medecin.cabinet_nom || medecin.cabinet_adresse">
+          <div class="medecin-location" *ngIf="medecin?.cabinet_nom || medecin?.cabinet_adresse">
             <mat-icon>location_on</mat-icon>
             <div>
-              <p *ngIf="medecin.cabinet_nom" class="cabinet-nom">{{ medecin.cabinet_nom }}</p>
-              <p *ngIf="medecin.cabinet_adresse" class="cabinet-adresse">{{ medecin.cabinet_adresse }}</p>
+              <p *ngIf="medecin?.cabinet_nom" class="cabinet-nom">{{ medecin.cabinet_nom }}</p>
+              <p *ngIf="medecin?.cabinet_adresse" class="cabinet-adresse">{{ medecin.cabinet_adresse }}</p>
             </div>
           </div>
 
           <div class="medecin-pricing">
             <div class="price-info">
-              <span class="price">{{ formatPrix(medecin.prix_consultation) }}</span>
-              <span class="duration">{{ medecin.duree_consultation }} min</span>
+              <span class="price">{{ formatPrix(medecin?.prix_consultation || 0) }}</span>
+              <span class="duration">{{ medecin?.duree_consultation || 30 }} min</span>
             </div>
             <div class="payment-methods">
-              <mat-chip *ngIf="medecin.accepte_paiement_ligne" class="payment-chip">
+              <mat-chip *ngIf="medecin?.accepte_paiement_ligne" class="payment-chip">
                 <mat-icon>credit_card</mat-icon>
                 Paiement en ligne
               </mat-chip>
@@ -116,7 +115,7 @@
             </div>
           </div>
 
-          <div class="prochaine-dispo" *ngIf="medecin.prochaine_disponibilite">
+          <div class="prochaine-dispo" *ngIf="medecin?.prochaine_disponibilite">
             <mat-icon>schedule</mat-icon>
             <span>Prochaine disponibilité : {{ medecin.prochaine_disponibilite.date }} à {{ medecin.prochaine_disponibilite.heure }}</span>
           </div>
@@ -124,7 +123,7 @@
 
         <mat-card-actions>
           <button mat-raised-button color="primary" 
-                  [disabled]="!medecin.disponible"
+                  [disabled]="!medecin?.disponible"
                   (click)="voirDetails(medecin)">
             <mat-icon>event</mat-icon>
             Prendre rendez-vous
