@@ -1,0 +1,212 @@
+<!-- src/app/components/admin/admin-users/admin-users.component.html -->
+<div class="admin-users-container">
+  <div class="page-header">
+    <h1>Gestion des utilisateurs</h1>
+    <p>Administrez les comptes patients, médecins et administrateurs</p>
+  </div>
+
+  <!-- Actions et filtres -->
+  <mat-card class="controls-card">
+    <mat-card-content>
+      <div class="controls-row">
+        <div class="filters">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Rechercher</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" placeholder="Nom, email...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Rôle</mat-label>
+            <mat-select [(value)]="selectedRole" (selectionChange)="onFilterChange()">
+              <mat-option value="">Tous les rôles</mat-option>
+              <mat-option value="patient">Patients</mat-option>
+              <mat-option value="medecin">Médecins</mat-option>
+              <mat-option value="admin">Administrateurs</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Statut</mat-label>
+            <mat-select [(value)]="selectedStatut" (selectionChange)="onFilterChange()">
+              <mat-option value="">Tous les statuts</mat-option>
+              <mat-option value="actif">Actifs</mat-option>
+              <mat-option value="inactif">Inactifs</mat-option>
+              <mat-option value="suspendu">Suspendus</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field" *ngIf="selectedRole === 'medecin'">
+            <mat-label>Spécialité</mat-label>
+            <mat-select [(value)]="selectedSpecialite" (selectionChange)="onFilterChange()">
+              <mat-option value="">Toutes les spécialités</mat-option>
+              <mat-option *ngFor="let specialite of specialites" [value]="specialite.id">
+                {{ specialite.nom }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-raised-button color="warn" (click)="clearFilters()">
+            <mat-icon>clear</mat-icon>
+            Effacer
+          </button>
+        </div>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" (click)="ouvrirDialogUtilisateur()">
+            <mat-icon>add</mat-icon>
+            Nouvel utilisateur
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des utilisateurs...</p>
+  </div>
+
+  <!-- Tableau des utilisateurs -->
+  <mat-card class="table-card" *ngIf="!isLoading">
+    <mat-table [dataSource]="utilisateurs" class="users-table">
+      
+      <!-- Colonne Utilisateur -->
+      <ng-container matColumnDef="utilisateur">
+        <mat-header-cell *matHeaderCellDef>Utilisateur</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          <div class="user-cell">
+            <div class="user-avatar">
+              <mat-icon>{{ getUserIcon(user.role) }}</mat-icon>
+            </div>
+            <div class="user-info">
+              <div class="user-name">{{ user.prenom }} {{ user.nom }}</div>
+              <div class="user-email">{{ user.email }}</div>
+              <div class="user-phone" *ngIf="user.telephone">{{ user.telephone }}</div>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Rôle -->
+      <ng-container matColumnDef="role">
+        <mat-header-cell *matHeaderCellDef>Rôle</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          <mat-chip [class]="'role-' + user.role" selected>
+            {{ getRoleLabel(user.role) }}
+          </mat-chip>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Statut -->
+      <ng-container matColumnDef="statut">
+        <mat-header-cell *matHeaderCellDef>Statut</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          <mat-chip [color]="getStatutColor(user.statut)" selected>
+            {{ getStatutLabel(user.statut) }}
+          </mat-chip>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Spécialité (pour médecins) -->
+      <ng-container matColumnDef="specialite">
+        <mat-header-cell *matHeaderCellDef>Spécialité</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          <span *ngIf="user.medecin?.specialite">{{ user.medecin.specialite.nom }}</span>
+          <span *ngIf="!user.medecin?.specialite" class="text-muted">-</span>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Informations additionnelles -->
+      <ng-container matColumnDef="infos">
+        <mat-header-cell *matHeaderCellDef>Informations</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          <div class="infos-cell">
+            <!-- Patient -->
+            <div *ngIf="user.role === 'patient' && user.patient" class="patient-info">
+              <small *ngIf="user.patient.date_naissance">
+                Âge: {{ calculateAge(user.patient.date_naissance) }} ans
+              </small>
+              <small *ngIf="user.patient.sexe">
+                Sexe: {{ user.patient.sexe }}
+              </small>
+            </div>
+            
+            <!-- Médecin -->
+            <div *ngIf="user.role === 'medecin' && user.medecin" class="medecin-info">
+              <small *ngIf="user.medecin.numero_ordre">
+                N° Ordre: {{ user.medecin.numero_ordre }}
+              </small>
+              <small *ngIf="user.medecin.experience_annees">
+                Exp: {{ user.medecin.experience_annees }} ans
+              </small>
+              <mat-chip class="disponibilite-chip" 
+                       [class]="user.medecin.disponible ? 'disponible' : 'indisponible'">
+                {{ user.medecin.disponible ? 'Disponible' : 'Indisponible' }}
+              </mat-chip>
+            </div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Date création -->
+      <ng-container matColumnDef="date_creation">
+        <mat-header-cell *matHeaderCellDef>Inscription</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          {{ user.created_at | date:'dd/MM/yyyy' }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Actions -->
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+        <mat-cell *matCellDef="let user">
+          <button mat-icon-button [matMenuTriggerFor]="actionsMenu" color="primary">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          
+          <mat-menu #actionsMenu="matMenu">
+            <button mat-menu-item (click)="ouvrirDialogUtilisateur(user)">
+              <mat-icon>edit</mat-icon>
+              <span>Modifier</span>
+            </button>
+            
+            <button mat-menu-item (click)="changerStatut(user)">
+              <mat-icon>swap_horiz</mat-icon>
+              <span>Changer statut</span>
+            </button>
+            
+            <mat-divider></mat-divider>
+            
+            <button mat-menu-item (click)="supprimerUtilisateur(user)" color="warn">
+              <mat-icon>delete</mat-icon>
+              <span>Supprimer</span>
+            </button>
+          </mat-menu>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+
+    <!-- Message si aucun utilisateur -->
+    <div *ngIf="utilisateurs.length === 0" class="no-users">
+      <mat-icon class="no-users-icon">people_outline</mat-icon>
+      <h3>Aucun utilisateur trouvé</h3>
+      <p>Aucun utilisateur ne correspond aux critères sélectionnés.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-container">
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="15"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event.pageIndex + 1)"
+        [showFirstLastButtons]="true">
+      </mat-paginator>
+    </div>
+  </mat-card>
+</div>

@@ -1,8 +1,24 @@
+// src/app/services/api.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { Router } from '@angular/router';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+
+// ============= INTERFACES =============
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  errors?: any;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  total: number;
+  per_page: number;
+}
 
 export interface User {
   id: number;
@@ -13,230 +29,426 @@ export interface User {
   statut: 'actif' | 'inactif' | 'suspendu';
   telephone?: string;
   adresse?: string;
-  patient?: any;
-  medecin?: any;
+  created_at: string;
+  updated_at: string;
+  patient?: Patient;
+  medecin?: Medecin;
+  nom_complet?: string;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  user: User;
-  token: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  nom: string;
-  prenom: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-  telephone?: string;
-  adresse?: string;
-  role?: 'patient' | 'medecin';
-  
-  // Champs spécifiques patient
+export interface Patient {
+  id: number;
+  user_id: number;
   date_naissance?: string;
   sexe?: 'M' | 'F';
-  
-  // Champs spécifiques médecin
-  specialite_id?: number;
-  numero_ordre?: string;
-  prix_consultation?: number;
+  profession?: string;
+  allergies?: string;
+  antecedents_medicaux?: string;
+  mutuelle?: string;
+  numero_securite_sociale?: string;
+  user?: User;
+}
+
+export interface Medecin {
+  id: number;
+  user_id: number;
+  specialite_id: number;
+  numero_ordre: string;
+  diplomes?: string;
+  experience_annees: number;
+  presentation?: string;
+  cabinet_nom?: string;
+  cabinet_adresse?: string;
+  horaires_travail?: any;
+  duree_consultation: number;
+  prix_consultation: number;
+  accepte_paiement_ligne: boolean;
+  disponible: boolean;
+  valide_par_admin?: boolean;
+  user?: User;
+  specialite?: Specialite;
+}
+
+export interface Specialite {
+  id: number;
+  nom: string;
+  description?: string;
+  icone?: string;
+  prix_consultation: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  medecins_count?: number;
+}
+
+export interface RendezVous {
+  id: number;
+  patient_id: number;
+  medecin_id: number;
+  date_heure: string;
+  duree: number;
+  motif?: string;
+  statut: 'en_attente' | 'confirme' | 'annule' | 'termine';
+  type_paiement: 'en_ligne' | 'au_cabinet';
+  statut_paiement: 'en_attente' | 'paye' | 'rembourse';
+  montant: number;
+  notes_medecin?: string;
+  confirme_at?: string;
+  annule_at?: string;
+  reference: string;
+  created_at: string;
+  updated_at: string;
+  patient?: Patient;
+  medecin?: Medecin;
+  paiement?: Paiement;
+  justificatif?: Justificatif;
+}
+
+export interface Paiement {
+  id: number;
+  rendez_vous_id: number;
+  patient_id: number;
+  montant: number;
+  methode: 'stripe' | 'especes' | 'carte' | 'cheque' | 'virement';
+  statut: 'en_attente' | 'reussi' | 'echoue' | 'rembourse';
+  transaction_id?: string;
+  donnees_paiement?: any;
+  paye_at?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  rendezVous?: RendezVous;
+  patient?: Patient;
+}
+
+export interface Justificatif {
+  id: number;
+  rendez_vous_id: number;
+  numero_justificatif: string;
+  chemin_fichier: string;
+  nom_fichier: string;
+  qr_code?: string;
+  envoye_email: boolean;
+  genere_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StatistiquesPatient {
+  total_rdv: number;
+  rdv_confirmes: number;
+  rdv_annules: number;
+  rdv_termines: number;
+  rdv_ce_mois: number;
+  montant_total_depense: number;
+  paiements_en_ligne: number;
+  paiements_au_cabinet: number;
+  specialites_consultees: number;
+}
+
+export interface StatistiquesMedecin {
+  total_rdv: number;
+  rdv_confirmes: number;
+  rdv_en_attente: number;
+  rdv_termines: number;
+  rdv_ce_mois: number;
+  rdv_semaine: number;
+  rdv_aujourd_hui: number;
+  revenus_mois: number;
+  revenus_total: number;
+  taux_confirmation: number;
+  temps_moyen_consultation: number;
+}
+
+export interface NotificationPatient {
+  type: 'rdv_proche' | 'paiement_attente';
+  message: string;
+  date?: string;
+  count?: number;
+}
+
+export interface DashboardStats {
+  utilisateurs: {
+    total: number;
+    patients: number;
+    medecins: number;
+    admins: number;
+    nouveaux_ce_mois: number;
+    actifs: number;
+    inactifs: number;
+  };
+  rendez_vous: {
+    total: number;
+    ce_mois: number;
+    confirmes: number;
+    en_attente: number;
+    annules: number;
+    termines: number;
+    aujourd_hui: number;
+  };
+  paiements: {
+    total_revenus: number;
+    revenus_ce_mois: number;
+    paiements_en_ligne: number;
+    paiements_cabinet: number;
+    en_attente: number;
+    echoues: number;
+  };
+  justificatifs: {
+    total_generes: number;
+    ce_mois: number;
+    envoyes_email: number;
+  };
+  specialites_populaires: any[];
+  medecins_actifs: number;
+  evolution_mensuelle: any[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class ApiService {
   private apiUrl = environment.apiUrl;
-  private tokenKey = 'auth_token';
-  private userKey = 'auth_user';
-  
-  private currentUserSubject = new BehaviorSubject<User | null>(this.getCurrentUser());
-  public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {}
+  constructor(private http: HttpClient) {}
 
-  /**
-   * Connexion utilisateur
-   */
-  login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            this.setAuthData(response.token, response.user);
-            this.redirectAfterLogin(response.user.role);
-          }
-        })
-      );
+  // ============= AUTHENTIFICATION =============
+  login(credentials: { email: string; password: string }): Observable<ApiResponse<{ user: User; token: string }>> {
+    return this.http.post<ApiResponse<{ user: User; token: string }>>(`${this.apiUrl}/login`, credentials);
   }
 
-  /**
-   * Inscription utilisateur
-   */
-  register(userData: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData)
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            this.setAuthData(response.token, response.user);
-            this.redirectAfterLogin(response.user.role);
-          }
-        })
-      );
+  register(userData: any): Observable<ApiResponse<{ user: User; token: string }>> {
+    return this.http.post<ApiResponse<{ user: User; token: string }>>(`${this.apiUrl}/register`, userData);
   }
 
-  /**
-   * Déconnexion
-   */
-  logout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/logout`, {})
-      .pipe(
-        tap(() => {
-          this.clearAuthData();
-          this.router.navigate(['/login']);
-        })
-      );
+  logout(): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.apiUrl}/logout`, {});
   }
 
-  /**
-   * Récupérer les informations utilisateur courantes
-   */
-  me(): Observable<{success: boolean, user: User}> {
-    return this.http.get<{success: boolean, user: User}>(`${this.apiUrl}/me`)
-      .pipe(
-        tap(response => {
-          if (response.success) {
-            this.setUser(response.user);
-          }
-        })
-      );
+  me(): Observable<ApiResponse<User>> {
+    return this.http.get<ApiResponse<User>>(`${this.apiUrl}/me`);
   }
 
-  /**
-   * Vérifier si l'utilisateur est connecté
-   */
-  isAuthenticated(): boolean {
-    const token = this.getToken();
-    return !!token && !this.isTokenExpired(token);
+  // ============= SPÉCIALITÉS =============
+  getSpecialites(): Observable<ApiResponse<Specialite[]>> {
+    return this.http.get<ApiResponse<Specialite[]>>(`${this.apiUrl}/specialites`);
   }
 
-  /**
-   * Récupérer le token
-   */
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
-  }
-
-  /**
-   * Récupérer l'utilisateur actuel depuis le localStorage
-   */
-  getCurrentUser(): User | null {
-    const userStr = localStorage.getItem(this.userKey);
-    return userStr ? JSON.parse(userStr) : null;
-  }
-
-  /**
-   * Vérifier si l'utilisateur a le rôle requis
-   */
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    return user ? user.role === role : false;
-  }
-
-  /**
-   * Vérifier si l'utilisateur a l'un des rôles requis
-   */
-  hasAnyRole(roles: string[]): boolean {
-    const user = this.getCurrentUser();
-    return user ? roles.includes(user.role) : false;
-  }
-
-  /**
-   * Sauvegarder les données d'authentification
-   */
-  private setAuthData(token: string, user: User): void {
-    localStorage.setItem(this.tokenKey, token);
-    localStorage.setItem(this.userKey, JSON.stringify(user));
-    this.currentUserSubject.next(user);
-  }
-
-  /**
-   * Mettre à jour les informations utilisateur
-   */
-  private setUser(user: User): void {
-    localStorage.setItem(this.userKey, JSON.stringify(user));
-    this.currentUserSubject.next(user);
-  }
-
-  /**
-   * Supprimer les données d'authentification
-   */
-  private clearAuthData(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
-    this.currentUserSubject.next(null);
-  }
-
-  /**
-   * Vérifier si le token est expiré
-   */
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp < currentTime;
-    } catch (error) {
-      return true;
-    }
-  }
-
-  /**
-   * Rediriger après connexion selon le rôle
-   */
-  private redirectAfterLogin(role: string): void {
-    switch (role) {
-      case 'patient':
-        this.router.navigate(['/dashboard/patient']);
-        break;
-      case 'medecin':
-        this.router.navigate(['/dashboard/medecin']);
-        break;
-      case 'admin':
-        this.router.navigate(['/dashboard/admin']);
-        break;
-      default:
-        this.router.navigate(['/dashboard']);
-        break;
-    }
-  }
-
-  /**
-   * Rafraîchir les données utilisateur
-   */
-  refreshUser(): void {
-    this.me().subscribe({
-      next: (response) => {
-        if (response.success) {
-          console.log('Données utilisateur mises à jour');
-        }
-      },
-      error: (error) => {
-        console.error('Erreur lors de la mise à jour des données utilisateur:', error);
-        if (error.status === 401) {
-          this.clearAuthData();
-          this.router.navigate(['/login']);
-        }
+  // ============= MÉDECINS =============
+  getMedecins(params: any = {}): Observable<ApiResponse<PaginatedResponse<Medecin>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
       }
     });
+    return this.http.get<ApiResponse<PaginatedResponse<Medecin>>>(`${this.apiUrl}/medecins`, { params: httpParams });
+  }
+
+  getMedecin(id: number): Observable<ApiResponse<Medecin>> {
+    return this.http.get<ApiResponse<Medecin>>(`${this.apiUrl}/medecins/${id}`);
+  }
+
+  // ============= RENDEZ-VOUS =============
+  getRendezVous(id: number): Observable<ApiResponse<RendezVous>> {
+    return this.http.get<ApiResponse<RendezVous>>(`${this.apiUrl}/rendez-vous/${id}`);
+  }
+
+  creerRendezVous(data: any): Observable<ApiResponse<RendezVous>> {
+    return this.http.post<ApiResponse<RendezVous>>(`${this.apiUrl}/rendez-vous`, data);
+  }
+
+  confirmerRendezVous(id: number): Observable<ApiResponse<RendezVous>> {
+    return this.http.post<ApiResponse<RendezVous>>(`${this.apiUrl}/rendez-vous/${id}/confirmer`, {});
+  }
+
+  annulerRendezVous(id: number): Observable<ApiResponse<RendezVous>> {
+    return this.http.post<ApiResponse<RendezVous>>(`${this.apiUrl}/rendez-vous/${id}/annuler`, {});
+  }
+
+  terminerRendezVous(id: number): Observable<ApiResponse<RendezVous>> {
+    return this.http.post<ApiResponse<RendezVous>>(`${this.apiUrl}/rendez-vous/${id}/terminer`, {});
+  }
+
+  getCreneauxDisponibles(medecinId: number, date: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/medecins/${medecinId}/creneaux?date=${date}`);
+  }
+
+  // ============= PATIENT =============
+  getPatientRendezVous(params: any = {}): Observable<ApiResponse<PaginatedResponse<RendezVous>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<RendezVous>>>(`${this.apiUrl}/patient/rendez-vous`, { params: httpParams });
+  }
+
+  getPatientStatistiques(): Observable<ApiResponse<StatistiquesPatient>> {
+    return this.http.get<ApiResponse<StatistiquesPatient>>(`${this.apiUrl}/patient/statistiques`);
+  }
+
+  getPatientNotifications(): Observable<ApiResponse<NotificationPatient[]>> {
+    return this.http.get<ApiResponse<NotificationPatient[]>>(`${this.apiUrl}/patient/notifications`);
+  }
+
+  updatePatientProfil(data: any): Observable<ApiResponse<Patient>> {
+    return this.http.put<ApiResponse<Patient>>(`${this.apiUrl}/patient/profil`, data);
+  }
+
+  // ============= MÉDECIN =============
+  getMedecinRendezVous(params: any = {}): Observable<ApiResponse<PaginatedResponse<RendezVous>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<RendezVous>>>(`${this.apiUrl}/medecin/rendez-vous`, { params: httpParams });
+  }
+
+  getMedecinStatistiques(): Observable<ApiResponse<StatistiquesMedecin>> {
+    return this.http.get<ApiResponse<StatistiquesMedecin>>(`${this.apiUrl}/medecin/statistiques`);
+  }
+
+  updateMedecinProfil(data: any): Observable<ApiResponse<Medecin>> {
+    return this.http.put<ApiResponse<Medecin>>(`${this.apiUrl}/medecin/profil`, data);
+  }
+
+  updateMedecinDisponibilite(data: any): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.apiUrl}/medecin/disponibilite`, data);
+  }
+
+  updateMedecinDisponibilites(data: any): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.apiUrl}/medecin/disponibilites`, data);
+  }
+
+  // ============= PAIEMENTS =============
+  creerPaiement(data: any): Observable<ApiResponse<{ client_secret: string; paiement_id: number }>> {
+    return this.http.post<ApiResponse<{ client_secret: string; paiement_id: number }>>(`${this.apiUrl}/paiements`, data);
+  }
+
+  confirmerPaiement(id: number): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.apiUrl}/paiements/${id}/confirmer`, {});
+  }
+
+  // ============= JUSTIFICATIFS =============
+  genererJustificatif(rendezVousId: number): Observable<ApiResponse<{ download_url: string }>> {
+    return this.http.post<ApiResponse<{ download_url: string }>>(`${this.apiUrl}/justificatifs/generer/${rendezVousId}`, {});
+  }
+
+  telechargerJustificatif(justificatifId: number): string {
+    return `${this.apiUrl}/justificatifs/${justificatifId}/telecharger`;
+  }
+
+  // ============= ADMIN =============
+  
+  // Dashboard Admin
+  getAdminDashboard(): Observable<ApiResponse<DashboardStats>> {
+    return this.http.get<ApiResponse<DashboardStats>>(`${this.apiUrl}/admin/dashboard`);
+  }
+
+  // Gestion Utilisateurs
+  getAdminUtilisateurs(params: any = {}): Observable<ApiResponse<PaginatedResponse<User>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<User>>>(`${this.apiUrl}/admin/utilisateurs`, { params: httpParams });
+  }
+
+  creerUtilisateur(data: any): Observable<ApiResponse<User>> {
+    return this.http.post<ApiResponse<User>>(`${this.apiUrl}/admin/utilisateurs`, data);
+  }
+
+  modifierUtilisateur(id: number, data: any): Observable<ApiResponse<User>> {
+    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/admin/utilisateurs/${id}`, data);
+  }
+
+  supprimerUtilisateur(id: number): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/admin/utilisateurs/${id}`);
+  }
+
+  changerStatutUtilisateur(id: number, data: { statut: string; raison?: string }): Observable<ApiResponse<User>> {
+    return this.http.put<ApiResponse<User>>(`${this.apiUrl}/admin/utilisateurs/${id}/statut`, data);
+  }
+
+  // Gestion Spécialités
+  getAdminSpecialites(params: any = {}): Observable<ApiResponse<PaginatedResponse<Specialite>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<Specialite>>>(`${this.apiUrl}/admin/specialites`, { params: httpParams });
+  }
+
+  creerSpecialite(data: any): Observable<ApiResponse<Specialite>> {
+    return this.http.post<ApiResponse<Specialite>>(`${this.apiUrl}/admin/specialites`, data);
+  }
+
+  modifierSpecialite(id: number, data: any): Observable<ApiResponse<Specialite>> {
+    return this.http.put<ApiResponse<Specialite>>(`${this.apiUrl}/admin/specialites/${id}`, data);
+  }
+
+  supprimerSpecialite(id: number): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/admin/specialites/${id}`);
+  }
+
+  // Suivi Paiements
+  getAdminPaiements(params: any = {}): Observable<ApiResponse<PaginatedResponse<Paiement>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<Paiement>>>(`${this.apiUrl}/admin/paiements`, { params: httpParams });
+  }
+
+  // Suivi Justificatifs
+  getAdminJustificatifs(params: any = {}): Observable<ApiResponse<PaginatedResponse<Justificatif>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<Justificatif>>>(`${this.apiUrl}/admin/justificatifs`, { params: httpParams });
+  }
+
+  // Gestion Rendez-vous Admin
+  getAdminRendezVous(params: any = {}): Observable<ApiResponse<PaginatedResponse<RendezVous>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<RendezVous>>>(`${this.apiUrl}/admin/rendez-vous`, { params: httpParams });
+  }
+
+  annulerRendezVousAdmin(id: number, data: { raison: string }): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.apiUrl}/admin/rendez-vous/${id}/annuler`, data);
+  }
+
+  // Statistiques Générales
+  getStatistiquesGenerales(params: any = {}): Observable<ApiResponse<any>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/admin/statistiques`, { params: httpParams });
+  }
+
+  // Génération de rapports
+  genererRapport(data: any): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/admin/rapports`, data);
   }
 }
