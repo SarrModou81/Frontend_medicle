@@ -1,0 +1,232 @@
+<!-- src/app/components/admin/admin-dashboard/admin-dashboard.component.html -->
+<div class="admin-dashboard">
+  <div class="dashboard-header">
+    <h1>Tableau de bord Administrateur</h1>
+    <p class="welcome-message">Vue d'ensemble de la plateforme médicale</p>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des données...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="dashboard-content">
+    
+    <!-- Actions rapides -->
+    <div class="quick-actions">
+      <h2>Actions rapides</h2>
+      <div class="actions-grid">
+        <mat-card 
+          *ngFor="let action of quickActions" 
+          class="action-card"
+          [class]="'action-' + action.color"
+          (click)="navigateTo(action.route)">
+          <mat-card-content>
+            <mat-icon class="action-icon">{{ action.icon }}</mat-icon>
+            <h3>{{ action.title }}</h3>
+            <p>{{ action.subtitle }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Statistiques Utilisateurs -->
+    <div class="stats-section">
+      <h2>Utilisateurs</h2>
+      <div class="stats-grid">
+        <mat-card class="stat-card primary">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>people</mat-icon>
+              <span class="stat-label">Total Utilisateurs</span>
+            </div>
+            <div class="stat-number">{{ stats.utilisateurs.total }}</div>
+            <div class="stat-detail">{{ stats.utilisateurs.nouveaux_ce_mois }} nouveaux ce mois</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card accent">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>personal_injury</mat-icon>
+              <span class="stat-label">Patients</span>
+            </div>
+            <div class="stat-number">{{ stats.utilisateurs.patients }}</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card success">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>medical_services</mat-icon>
+              <span class="stat-label">Médecins</span>
+            </div>
+            <div class="stat-number">{{ stats.utilisateurs.medecins }}</div>
+            <div class="stat-detail">{{ stats.medecins_actifs }} actifs</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card warn">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>admin_panel_settings</mat-icon>
+              <span class="stat-label">Administrateurs</span>
+            </div>
+            <div class="stat-number">{{ stats.utilisateurs.admins }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Statistiques Rendez-vous -->
+    <div class="stats-section">
+      <h2>Rendez-vous</h2>
+      <div class="stats-grid">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>event</mat-icon>
+              <span class="stat-label">Total RDV</span>
+            </div>
+            <div class="stat-number">{{ stats.rendez_vous.total }}</div>
+            <div class="stat-detail">{{ stats.rendez_vous.aujourd_hui }} aujourd'hui</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>check_circle</mat-icon>
+              <span class="stat-label">Confirmés</span>
+            </div>
+            <div class="stat-number">{{ stats.rendez_vous.confirmes }}</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>pending</mat-icon>
+              <span class="stat-label">En attente</span>
+            </div>
+            <div class="stat-number">{{ stats.rendez_vous.en_attente }}</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>done_all</mat-icon>
+              <span class="stat-label">Terminés</span>
+            </div>
+            <div class="stat-number">{{ stats.rendez_vous.termines }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Statistiques Financières -->
+    <div class="stats-section">
+      <h2>Revenus et Paiements</h2>
+      <div class="stats-grid">
+        <mat-card class="stat-card financial">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>attach_money</mat-icon>
+              <span class="stat-label">Revenus Total</span>
+            </div>
+            <div class="stat-number">{{ formatMontant(stats.paiements.total_revenus) }}</div>
+            <div class="stat-detail">{{ formatMontant(stats.paiements.revenus_ce_mois) }} ce mois</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>credit_card</mat-icon>
+              <span class="stat-label">Paiements en ligne</span>
+            </div>
+            <div class="stat-number">{{ stats.paiements.paiements_en_ligne }}</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>payment</mat-icon>
+              <span class="stat-label">Au cabinet</span>
+            </div>
+            <div class="stat-number">{{ stats.paiements.paiements_cabinet }}</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>description</mat-icon>
+              <span class="stat-label">Justificatifs</span>
+            </div>
+            <div class="stat-number">{{ stats.justificatifs.total_generes }}</div>
+            <div class="stat-detail">{{ stats.justificatifs.ce_mois }} ce mois</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Spécialités populaires -->
+    <div class="chart-section">
+      <h2>Spécialités les plus populaires</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div *ngIf="stats.specialites_populaires.length > 0" class="specialites-chart">
+            <div *ngFor="let specialite of stats.specialites_populaires; let i = index" 
+                 class="specialite-item">
+              <div class="specialite-info">
+                <span class="specialite-nom">{{ specialite.nom }}</span>
+                <span class="specialite-count">{{ specialite.medecins_count }} médecins</span>
+              </div>
+              <div class="specialite-bar">
+                <div class="specialite-progress" 
+                     [style.width.%]="(specialite.medecins_count / stats.specialites_populaires[0].medecins_count) * 100"
+                     [style.background-color]="getSpecialiteColor(i)"></div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="stats.specialites_populaires.length === 0" class="no-data">
+            <mat-icon>info</mat-icon>
+            <p>Aucune donnée de spécialité disponible</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Évolution mensuelle -->
+    <div class="chart-section" *ngIf="stats.evolution_mensuelle.length > 0">
+      <h2>Évolution des 12 derniers mois</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div class="evolution-chart">
+            <div *ngFor="let mois of stats.evolution_mensuelle" class="mois-item">
+              <div class="mois-label">{{ mois.label }}</div>
+              <div class="mois-stats">
+                <div class="mois-stat">
+                  <span class="stat-label">RDV</span>
+                  <span class="stat-value">{{ mois.rdv }}</span>
+                </div>
+                <div class="mois-stat">
+                  <span class="stat-label">Revenus</span>
+                  <span class="stat-value">{{ formatMontant(mois.revenus) }}</span>
+                </div>
+                <div class="mois-stat">
+                  <span class="stat-label">Utilisateurs</span>
+                  <span class="stat-value">{{ mois.nouveaux_utilisateurs }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
