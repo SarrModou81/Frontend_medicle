@@ -298,4 +298,18 @@ export class MedecinHorairesComponent implements OnInit {
     
     return Math.round(totalMinutes / 60 * 10) / 10; // Arrondi à 1 décimale
   }
+
+  calculerNombreCreneaux(debut: string, fin: string): number {
+  if (!debut || !fin) return 0;
+  
+  const [debutH, debutM] = debut.split(':').map(Number);
+  const [finH, finM] = fin.split(':').map(Number);
+  
+  const debutMinutes = debutH * 60 + debutM;
+  const finMinutes = finH * 60 + finM;
+  const dureeConsultation = this.horairesForm.get('duree_consultation')?.value || 30;
+  
+  const dureeDisponible = finMinutes - debutMinutes;
+  return Math.floor(dureeDisponible / dureeConsultation);
+}
 }

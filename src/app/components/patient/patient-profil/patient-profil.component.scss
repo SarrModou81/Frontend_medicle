@@ -1,6 +1,6 @@
-/* src/app/components/medecin/medecin-profil/medecin-profil.component.scss */
-.medecin-profil-container {
-  max-width: 900px;
+/* src/app/components/patient/patient-profil/patient-profil.component.scss */
+.patient-profil-container {
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -41,19 +41,6 @@
   gap: 24px;
 }
 
-.disponibilite-card {
-  border-radius: 12px;
-  border-left: 4px solid #4caf50;
-  
-  .disponibilite-actions {
-    margin-top: 16px;
-    
-    button {
-      min-width: 150px;
-    }
-  }
-}
-
 .profil-card {
   border-radius: 12px;
 }
@@ -86,7 +73,7 @@
   margin-bottom: 16px;
 }
 
-.specialite-display {
+.age-display {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -98,29 +85,14 @@
     font-weight: 500;
   }
   
-  .specialite-value {
+  .age-value {
     padding: 16px;
     background-color: #e3f2fd;
     color: #1976d2;
     border-radius: 8px;
     text-align: center;
     font-weight: 600;
-    font-size: 1rem;
-  }
-}
-
-.checkbox-section {
-  margin-top: 16px;
-  
-  mat-checkbox {
-    margin-bottom: 8px;
-  }
-  
-  small {
-    color: #666;
-    display: block;
-    margin-left: 32px;
-    line-height: 1.4;
+    font-size: 1.1rem;
   }
 }
 
@@ -131,7 +103,7 @@
   border-top: 1px solid #e0e0e0;
   
   button {
-    min-width: 250px;
+    min-width: 200px;
     height: 48px;
     font-size: 16px;
     font-weight: 600;
@@ -143,44 +115,30 @@
   }
 }
 
-// =============== SPECIFIC FORM STYLES ===============
-mat-slide-toggle {
-  margin-bottom: 8px;
+.info-card {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+  border-left: 4px solid #4caf50;
   
-  .mat-slide-toggle-content {
-    font-weight: 500;
-  }
-}
-
-mat-form-field {
-  &.full-width {
-    margin-bottom: 16px;
-  }
-}
-
-// =============== STATUS INDICATORS ===============
-.status-indicator {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  gap: 8px;
-  
-  &.available {
-    background-color: #e8f5e8;
+  h3 {
+    margin: 0 0 16px 0;
     color: #2e7d32;
+    font-size: 1.1rem;
   }
   
-  &.unavailable {
-    background-color: #ffebee;
-    color: #d32f2f;
-  }
-  
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+  ul {
+    margin: 0;
+    padding-left: 20px;
+    
+    li {
+      margin-bottom: 8px;
+      color: #555;
+      line-height: 1.4;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 }
 
@@ -191,7 +149,7 @@ mat-form-field {
 
 // =============== RESPONSIVE ===============
 @media (max-width: 768px) {
-  .medecin-profil-container {
+  .patient-profil-container {
     padding: 16px;
   }
   
@@ -219,15 +177,9 @@ mat-form-field {
   .profil-card mat-card-content {
     padding: 16px;
   }
-  
-  .checkbox-section small {
-    margin-left: 0;
-    margin-top: 8px;
-  }
 }
 
 // =============== ANIMATIONS ===============
-.disponibilite-card,
 .profil-card {
   animation: slideInUp 0.3s ease-out;
 }
@@ -240,17 +192,5 @@ mat-form-field {
   to {
     transform: translateY(0);
     opacity: 1;
-  }
-}
-
-// =============== MATERIAL DESIGN OVERRIDES ===============
-.mat-card-header {
-  .mat-card-title {
-    color: #333;
-    font-weight: 500;
-  }
-  
-  .mat-card-subtitle {
-    color: #666;
   }
 }

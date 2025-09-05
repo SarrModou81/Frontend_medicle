@@ -1,0 +1,171 @@
+<!-- src/app/components/patient/patient-profil/patient-profil.component.html -->
+<div class="patient-profil-container">
+  <div class="page-header">
+    <h1>Mon profil patient</h1>
+    <p>Gérez vos informations personnelles et médicales</p>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement de votre profil...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="profil-content">
+    
+    <!-- Informations personnelles -->
+    <mat-card class="profil-card">
+      <mat-card-header>
+        <mat-card-title>Informations personnelles</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="profilForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Informations de base (non modifiables) -->
+          <div class="section">
+            <h3>Informations de compte</h3>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Nom</mat-label>
+                <input matInput formControlName="nom">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Prénom</mat-label>
+                <input matInput formControlName="prenom">
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email">
+              <mat-icon matSuffix>email</mat-icon>
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Téléphone</mat-label>
+                <input matInput formControlName="telephone" placeholder="+221 77 XXX XX XX">
+                <mat-icon matSuffix>phone</mat-icon>
+                <mat-error>{{ getErrorMessage('telephone') }}</mat-error>
+              </mat-form-field>
+
+              <div class="age-display half-width" *ngIf="getAge()">
+                <label>Âge</label>
+                <div class="age-value">{{ getAge() }} ans</div>
+              </div>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Adresse</mat-label>
+              <textarea matInput formControlName="adresse" rows="2"></textarea>
+              <mat-icon matSuffix>location_on</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Informations médicales -->
+          <div class="section">
+            <h3>Informations médicales</h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Date de naissance</mat-label>
+                <input matInput 
+                       [matDatepicker]="picker" 
+                       formControlName="date_naissance"
+                       [max]="maxDate">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-error>{{ getErrorMessage('date_naissance') }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Sexe</mat-label>
+                <mat-select formControlName="sexe">
+                  <mat-option value="M">Masculin</mat-option>
+                  <mat-option value="F">Féminin</mat-option>
+                </mat-select>
+                <mat-error>{{ getErrorMessage('sexe') }}</mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Profession</mat-label>
+              <input matInput formControlName="profession" placeholder="Ex: Enseignant, Ingénieur...">
+              <mat-icon matSuffix>work</mat-icon>
+              <mat-error>{{ getErrorMessage('profession') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Informations de santé -->
+          <div class="section">
+            <h3>Informations de santé</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Allergies connues</mat-label>
+              <textarea matInput formControlName="allergies" rows="3" maxlength="1000"
+                        placeholder="Décrivez vos allergies connues (médicaments, aliments, environnement...)"></textarea>
+              <mat-hint align="end">{{ profilForm.get('allergies')?.value?.length || 0 }}/1000</mat-hint>
+              <mat-error>{{ getErrorMessage('allergies') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Antécédents médicaux</mat-label>
+              <textarea matInput formControlName="antecedents_medicaux" rows="3" maxlength="1000"
+                        placeholder="Maladies antérieures, chirurgies, hospitalisations..."></textarea>
+              <mat-hint align="end">{{ profilForm.get('antecedents_medicaux')?.value?.length || 0 }}/1000</mat-hint>
+              <mat-error>{{ getErrorMessage('antecedents_medicaux') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Informations de couverture -->
+          <div class="section">
+            <h3>Couverture médicale</h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Mutuelle / Assurance</mat-label>
+                <input matInput formControlName="mutuelle" placeholder="Ex: CSS, IPRESS...">
+                <mat-icon matSuffix>local_hospital</mat-icon>
+                <mat-error>{{ getErrorMessage('mutuelle') }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Numéro de sécurité sociale</mat-label>
+                <input matInput formControlName="numero_securite_sociale" placeholder="Optionnel">
+                <mat-icon matSuffix>credit_card</mat-icon>
+                <mat-error>{{ getErrorMessage('numero_securite_sociale') }}</mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+        </form>
+      </mat-card-content>
+
+      <mat-card-actions class="form-actions">
+        <button mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="!profilForm.valid || isSaving"
+                (click)="onSubmit()">
+          <mat-icon *ngIf="isSaving" class="spinner">refresh</mat-icon>
+          {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder les modifications' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Informations utiles -->
+    <mat-card class="info-card">
+      <mat-card-content>
+        <h3>Informations importantes</h3>
+        <ul>
+          <li>Vos informations médicales aident les médecins à mieux vous soigner</li>
+          <li>Tenez à jour vos allergies et antécédents médicaux</li>
+          <li>Ces informations sont confidentielles et sécurisées</li>
+          <li>Seuls les médecins que vous consultez y ont accès</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

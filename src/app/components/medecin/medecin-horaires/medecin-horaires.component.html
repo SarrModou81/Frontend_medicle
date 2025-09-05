@@ -1,0 +1,189 @@
+<!-- src/app/components/medecin/medecin-horaires/medecin-horaires.component.html -->
+<div class="medecin-horaires-container">
+  <div class="page-header">
+    <h1>Mes horaires de consultation</h1>
+    <p>Configurez vos disponibilités pour recevoir des patients</p>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement de vos horaires...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="horaires-content">
+    
+    <!-- Résumé des horaires -->
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <div class="summary-stats">
+          <div class="stat-item">
+            <div class="stat-number">{{ getJoursActifs() }}</div>
+            <div class="stat-label">Jours actifs</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ getHeuresParSemaine() }}h</div>
+            <div class="stat-label">Heures/semaine</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ horairesForm.get('duree_consultation')?.value || 30 }}min</div>
+            <div class="stat-label">Durée consultation</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Configuration des horaires -->
+    <mat-card class="horaires-card">
+      <mat-card-header>
+        <mat-card-title>Configuration des horaires</mat-card-title>
+        <mat-card-subtitle>Définissez vos créneaux de consultation</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="horairesForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Durée de consultation -->
+          <div class="form-section">
+            <h3>Durée de consultation</h3>
+            <mat-form-field appearance="outline" class="duration-field">
+              <mat-label>Durée (minutes)</mat-label>
+              <mat-select formControlName="duree_consultation">
+                <mat-option value="15">15 minutes</mat-option>
+                <mat-option value="20">20 minutes</mat-option>
+                <mat-option value="30">30 minutes</mat-option>
+                <mat-option value="45">45 minutes</mat-option>
+                <mat-option value="60">60 minutes</mat-option>
+                <mat-option value="90">90 minutes</mat-option>
+                <mat-option value="120">120 minutes</mat-option>
+              </mat-select>
+              <mat-error>{{ getErrorMessage('duree_consultation') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Actions rapides -->
+          <div class="form-section">
+            <h3>Actions rapides</h3>
+            <div class="quick-actions">
+              <button mat-raised-button type="button" (click)="activerTousLesJours()" color="primary">
+                <mat-icon>event_available</mat-icon>
+                Activer tous les jours
+              </button>
+              <button mat-raised-button type="button" (click)="desactiverTousLesJours()" color="warn">
+                <mat-icon>event_busy</mat-icon>
+                Désactiver tous
+              </button>
+            </div>
+          </div>
+
+          <!-- Horaires par jour -->
+          <div class="form-section">
+            <h3>Horaires de travail</h3>
+            
+            <div class="jours-container">
+              <div *ngFor="let jour of joursSemaine" class="jour-card">
+                <mat-card [class.active]="jour.actif" [class.inactive]="!jour.actif">
+                  <mat-card-content>
+                    
+                    <!-- En-tête du jour -->
+                    <div class="jour-header">
+                      <div class="jour-toggle">
+                        <mat-slide-toggle 
+                          [checked]="jour.actif"
+                          (change)="onJourToggle(jour.id)"
+                          color="primary">
+                        </mat-slide-toggle>
+                        <span class="jour-nom">{{ jour.nom }}</span>
+                      </div>
+                      
+                      <button mat-icon-button 
+                              type="button"
+                              *ngIf="jour.actif"
+                              (click)="copierHoraires(jour.id)"
+                              matTooltip="Copier ces horaires sur les autres jours actifs">
+                        <mat-icon>content_copy</mat-icon>
+                      </button>
+                    </div>
+
+                    <!-- Configuration des heures -->
+                    <div class="horaires-config" *ngIf="jour.actif">
+                      <div class="horaires-row">
+                        <mat-form-field appearance="outline" class="heure-field">
+                          <mat-label>Début</mat-label>
+                          <mat-select 
+                            [formControlName]="jour.id + '_debut'"
+                            (selectionChange)="onHeureChange(jour.id, 'debut', $event.value)">
+                            <mat-option *ngFor="let heure of heuresOptions" [value]="heure">
+                              {{ heure }}
+                            </mat-option>
+                          </mat-select>
+                        </mat-form-field>
+
+                        <mat-icon class="separator-icon">arrow_forward</mat-icon>
+
+                        <mat-form-field appearance="outline" class="heure-field">
+                          <mat-label>Fin</mat-label>
+                          <mat-select 
+                            [formControlName]="jour.id + '_fin'"
+                            (selectionChange)="onHeureChange(jour.id, 'fin', $event.value)">
+                            <mat-option *ngFor="let heure of heuresOptions" [value]="heure">
+                              {{ heure }}
+                            </mat-option>
+                          </mat-select>
+                          <mat-error>{{ getErrorMessage(jour.id + '_fin') }}</mat-error>
+                        </mat-form-field>
+                      </div>
+
+                      <!-- Aperçu des créneaux -->
+                      <div class="creneaux-preview" *ngIf="jour.debut && jour.fin">
+                        <small>
+                          Créneaux disponibles : {{ jour.debut }} - {{ jour.fin }}
+                          <span class="duree-info">
+                            ({{ calculerNombreCreneaux(jour.debut, jour.fin) }} créneaux de {{ horairesForm.get('duree_consultation')?.value }}min)
+                          </span>
+                        </small>
+                      </div>
+                    </div>
+
+                    <!-- Message si désactivé -->
+                    <div class="jour-inactive-message" *ngIf="!jour.actif">
+                      <mat-icon>event_busy</mat-icon>
+                      <span>Jour non disponible</span>
+                    </div>
+
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </mat-card-content>
+
+      <mat-card-actions class="form-actions">
+        <button mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="!horairesForm.valid || isSaving"
+                (click)="onSubmit()">
+          <mat-icon *ngIf="isSaving" class="spinner">refresh</mat-icon>
+          {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder les horaires' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Informations utiles -->
+    <mat-card class="info-card">
+      <mat-card-content>
+        <h3>Informations importantes</h3>
+        <ul>
+          <li>Vos horaires définissent quand les patients peuvent prendre rendez-vous</li>
+          <li>Vous pouvez modifier vos horaires à tout moment</li>
+          <li>Les changements s'appliquent aux nouveaux rendez-vous uniquement</li>
+          <li>Pensez à prévoir des pauses entre vos consultations</li>
+          <li>Les créneaux se génèrent automatiquement selon votre durée de consultation</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

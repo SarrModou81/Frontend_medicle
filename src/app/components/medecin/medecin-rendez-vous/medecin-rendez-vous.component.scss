@@ -1,0 +1,295 @@
+/* src/app/components/medecin/medecin-rendez-vous/medecin-rendez-vous.component.scss */
+.medecin-rdv-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  text-align: center;
+  
+  h1 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 2.2rem;
+    font-weight: 300;
+  }
+  
+  p {
+    color: #666;
+    font-size: 1.1rem;
+  }
+}
+
+.filters-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  
+  .filters-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    
+    .filter-field {
+      min-width: 200px;
+      flex: 1;
+    }
+    
+    .clear-btn {
+      height: 40px;
+      white-space: nowrap;
+    }
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  
+  mat-spinner {
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+// =============== TABLE STYLES ===============
+.table-card {
+  border-radius: 12px;
+  overflow: hidden;
+  
+  .rdv-table {
+    width: 100%;
+    
+    .mat-header-cell {
+      font-weight: 600;
+      color: #333;
+      background-color: #f8f9fa;
+    }
+    
+    .mat-cell {
+      padding: 16px 8px;
+    }
+    
+    .mat-row:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+}
+
+.date-cell {
+  .date-time {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #333;
+  }
+  
+  .duration {
+    color: #666;
+    font-size: 0.9rem;
+  }
+}
+
+.patient-cell {
+  .patient-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #333;
+  }
+  
+  .patient-contact {
+    color: #666;
+    font-size: 0.9rem;
+  }
+}
+
+.motif-cell {
+  max-width: 200px;
+  word-wrap: break-word;
+  color: #555;
+  font-style: italic;
+}
+
+.paiement-cell {
+  .montant {
+    font-weight: 600;
+    color: #2e7d32;
+    margin-bottom: 4px;
+  }
+  
+  .paiement-chip {
+    font-size: 0.8rem;
+  }
+}
+
+.actions-cell {
+  text-align: center;
+}
+
+// =============== NO RDV MESSAGE ===============
+.no-rdv {
+  .no-rdv-card {
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    .no-rdv-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    
+    p {
+      margin: 0 0 24px 0;
+      color: #666;
+    }
+  }
+}
+
+// =============== PAGINATION ===============
+.pagination-container {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+// =============== STATUS COLORS ===============
+.mat-chip {
+  &[color="primary"] {
+    background-color: #e3f2fd !important;
+    color: #1976d2 !important;
+  }
+  
+  &[color="success"] {
+    background-color: #e8f5e8 !important;
+    color: #2e7d32 !important;
+  }
+  
+  &[color="warn"] {
+    background-color: #ffebee !important;
+    color: #d32f2f !important;
+  }
+  
+  &[color="accent"] {
+    background-color: #fce4ec !important;
+    color: #c2185b !important;
+  }
+  
+  &[color="default"] {
+    background-color: #f5f5f5 !important;
+    color: #666 !important;
+  }
+}
+
+// =============== RESPONSIVE ===============
+@media (max-width: 768px) {
+  .medecin-rdv-container {
+    padding: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .filters-row {
+    .filter-field {
+      min-width: 100%;
+    }
+    
+    .clear-btn {
+      width: 100%;
+      margin-top: 8px;
+    }
+  }
+  
+  .table-card {
+    overflow-x: auto;
+  }
+  
+  .rdv-table {
+    min-width: 800px;
+    
+    .mat-cell, .mat-header-cell {
+      padding: 8px 4px;
+      font-size: 0.9rem;
+    }
+  }
+  
+  .motif-cell {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rdv-table {
+    min-width: 600px;
+    
+    .mat-cell, .mat-header-cell {
+      padding: 6px 2px;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// =============== ANIMATIONS ===============
+.rdv-table .mat-row {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// =============== MENU STYLES ===============
+.mat-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  mat-icon {
+    margin-right: 0;
+  }
+}
+
+// =============== TABLE ENHANCEMENTS ===============
+.mat-table {
+  .mat-header-row {
+    background-color: #f8f9fa;
+  }
+  
+  .mat-row {
+    transition: background-color 0.2s ease;
+    
+    &:nth-child(even) {
+      background-color: #fafafa;
+    }
+    
+    &:hover {
+      background-color: rgba(63, 81, 181, 0.04) !important;
+    }
+  }
+}
