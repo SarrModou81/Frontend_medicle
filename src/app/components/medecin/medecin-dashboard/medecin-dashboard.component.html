@@ -1,0 +1,193 @@
+<!-- src/app/components/medecin/medecin-dashboard/medecin-dashboard.component.html -->
+<div class="medecin-dashboard">
+  <div class="dashboard-header">
+    <h1>Bienvenue, Dr. {{ currentUser?.nom }} !</h1>
+    <p class="welcome-message">Gérez votre pratique médicale en toute simplicité</p>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement de vos données...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="dashboard-content">
+    
+    <!-- Actions rapides -->
+    <div class="quick-actions">
+      <h2>Actions rapides</h2>
+      <div class="actions-grid">
+        <mat-card 
+          *ngFor="let action of actionsRapides" 
+          class="action-card"
+          [class]="'action-' + action.color"
+          (click)="navigateTo(action.route)">
+          <mat-card-content>
+            <mat-icon class="action-icon">{{ action.icon }}</mat-icon>
+            <h3>{{ action.title }}</h3>
+            <p>{{ action.subtitle }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-section">
+      <h2>Mes statistiques</h2>
+      <div class="stats-grid">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ statistiques.rdv_aujourd_hui || 0 }}</div>
+            <div class="stat-label">RDV Aujourd'hui</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ statistiques.rdv_en_attente || 0 }}</div>
+            <div class="stat-label">En attente</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ statistiques.rdv_ce_mois || 0 }}</div>
+            <div class="stat-label">Ce mois</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ formatMontant(statistiques.revenus_mois || 0) }}</div>
+            <div class="stat-label">Revenus mois</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Prochain rendez-vous -->
+    <div class="next-appointment" *ngIf="prochainRdv">
+      <h2>Prochain rendez-vous</h2>
+      <mat-card class="appointment-card">
+        <mat-card-content>
+          <div class="appointment-info">
+            <div class="appointment-details">
+              <h3>{{ prochainRdv.patient?.user?.nom }} {{ prochainRdv.patient?.user?.prenom }}</h3>
+              <p class="date-time">
+                <mat-icon>event</mat-icon>
+                {{ formatDate(prochainRdv.date_heure) }}
+              </p>
+              <p class="motif" *ngIf="prochainRdv.motif">
+                <mat-icon>note</mat-icon>
+                {{ prochainRdv.motif }}
+              </p>
+              <p class="duree">
+                <mat-icon>schedule</mat-icon>
+                {{ prochainRdv.duree }} minutes
+              </p>
+            </div>
+            <div class="appointment-actions">
+              <button mat-raised-button color="primary" 
+                      [routerLink]="['/medecin/rendez-vous']">
+                Voir détails
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Rendez-vous d'aujourd'hui -->
+    <div class="today-appointments" *ngIf="rdvAujourdhui.length > 0">
+      <h2>Rendez-vous d'aujourd'hui</h2>
+      <div class="appointments-list">
+        <mat-card *ngFor="let rdv of rdvAujourdhui" class="appointment-item">
+          <mat-card-content>
+            <div class="appointment-row">
+              <div class="patient-info">
+                <h4>{{ rdv.patient?.user?.nom }} {{ rdv.patient?.user?.prenom }}</h4>
+                <p class="time">{{ formatDate(rdv.date_heure) }}</p>
+                <p class="motif" *ngIf="rdv.motif">{{ rdv.motif }}</p>
+              </div>
+              
+              <div class="status-info">
+                <mat-chip [color]="getStatutColor(rdv.statut)" selected>
+                  {{ getStatutLabel(rdv.statut) }}
+                </mat-chip>
+              </div>
+              
+              <div class="action-buttons">
+                <button mat-button 
+                        *ngIf="rdv.statut === 'en_attente'"
+                        color="primary" 
+                        (click)="confirmerRendezVous(rdv)">
+                  <mat-icon>check</mat-icon>
+                  Confirmer
+                </button>
+                
+                <button mat-button 
+                        *ngIf="rdv.statut === 'confirme' && new Date(rdv.date_heure) <= new Date()"
+                        color="accent" 
+                        (click)="terminerRendezVous(rdv)">
+                  <mat-icon>done_all</mat-icon>
+                  Terminer
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Message si pas de RDV aujourd'hui -->
+    <div class="no-appointment" *ngIf="rdvAujourdhui.length === 0 && !isLoading">
+      <mat-card class="info-card">
+        <mat-card-content>
+          <mat-icon class="info-icon">event_available</mat-icon>
+          <h3>Aucun rendez-vous aujourd'hui</h3>
+          <p>Votre planning est libre pour aujourd'hui.</p>
+          <button mat-raised-button color="primary" 
+                  [routerLink]="['/medecin/horaires']">
+            Gérer mes disponibilités
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Statistiques supplémentaires -->
+    <div class="additional-stats">
+      <h2>Performance</h2>
+      <div class="performance-grid">
+        <mat-card class="performance-card">
+          <mat-card-content>
+            <div class="performance-header">
+              <mat-icon>trending_up</mat-icon>
+              <h4>Taux de confirmation</h4>
+            </div>
+            <div class="performance-value">{{ statistiques.taux_confirmation || 0 }}%</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="performance-card">
+          <mat-card-content>
+            <div class="performance-header">
+              <mat-icon>attach_money</mat-icon>
+              <h4>Revenus total</h4>
+            </div>
+            <div class="performance-value">{{ formatMontant(statistiques.revenus_total || 0) }}</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="performance-card">
+          <mat-card-content>
+            <div class="performance-header">
+              <mat-icon>schedule</mat-icon>
+              <h4>Durée consultation</h4>
+            </div>
+            <div class="performance-value">{{ statistiques.temps_moyen_consultation || 30 }} min</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

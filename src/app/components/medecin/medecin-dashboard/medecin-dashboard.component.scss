@@ -1,0 +1,398 @@
+/* src/app/components/medecin/medecin-dashboard/medecin-dashboard.component.scss */
+.medecin-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+  text-align: center;
+  
+  h1 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 2.5rem;
+    font-weight: 300;
+  }
+  
+  .welcome-message {
+    color: #666;
+    font-size: 1.1rem;
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  
+  mat-spinner {
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+// ============= ACTIONS RAPIDES =============
+.quick-actions {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.action-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  
+  mat-card-content {
+    text-align: center;
+    padding: 24px;
+  }
+  
+  .action-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  
+  p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  &.action-primary {
+    border-left: 4px solid #3f51b5;
+    
+    .action-icon {
+      color: #3f51b5;
+    }
+  }
+  
+  &.action-accent {
+    border-left: 4px solid #ff4081;
+    
+    .action-icon {
+      color: #ff4081;
+    }
+  }
+  
+  &.action-warn {
+    border-left: 4px solid #ff9800;
+    
+    .action-icon {
+      color: #ff9800;
+    }
+  }
+}
+
+// ============= STATISTIQUES =============
+.stats-section {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  text-align: center;
+  border-radius: 12px;
+  
+  mat-card-content {
+    padding: 24px;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #3f51b5;
+    margin-bottom: 8px;
+  }
+  
+  .stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// ============= PROCHAIN RENDEZ-VOUS =============
+.next-appointment {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.appointment-card {
+  border-radius: 12px;
+  border-left: 4px solid #4caf50;
+  
+  .appointment-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .appointment-details {
+    flex: 1;
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 1.3rem;
+    }
+    
+    .date-time, .motif, .duree {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+      color: #555;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+  
+  .appointment-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+// ============= RENDEZ-VOUS AUJOURD'HUI =============
+.today-appointments {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointment-item {
+  border-radius: 8px;
+  
+  .appointment-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .patient-info {
+      flex: 1;
+      
+      h4 {
+        margin: 0 0 4px 0;
+        color: #333;
+        font-size: 1.1rem;
+      }
+      
+      .time {
+        margin: 0 0 4px 0;
+        color: #666;
+        font-weight: 500;
+      }
+      
+      .motif {
+        margin: 0;
+        color: #888;
+        font-size: 0.9rem;
+        font-style: italic;
+      }
+    }
+    
+    .status-info {
+      mat-chip {
+        font-size: 0.8rem;
+      }
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      
+      button {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+// ============= PAS DE RDV =============
+.no-appointment {
+  .info-card {
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    .info-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #4caf50;
+      margin-bottom: 16px;
+    }
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    
+    p {
+      margin: 0 0 24px 0;
+      color: #666;
+    }
+  }
+}
+
+// ============= STATISTIQUES SUPPLÉMENTAIRES =============
+.additional-stats {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.performance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.performance-card {
+  border-radius: 12px;
+  
+  .performance-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    
+    mat-icon {
+      color: #3f51b5;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+    
+    h4 {
+      margin: 0;
+      color: #666;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+  
+  .performance-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+// ============= RESPONSIVE =============
+@media (max-width: 768px) {
+  .medecin-dashboard {
+    padding: 16px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+  
+  .appointment-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .appointment-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    
+    .action-buttons {
+      width: 100%;
+      
+      button {
+        flex: 1;
+      }
+    }
+  }
+  
+  .stats-grid, .actions-grid, .performance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .appointments-list {
+    gap: 8px;
+  }
+  
+  .appointment-item mat-card-content {
+    padding: 16px;
+  }
+}
+
+// ============= ANIMATIONS =============
+.appointment-item {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
