@@ -290,3 +290,128 @@
     }
   }
 }
+/* Ajouter à paiement.component.scss */
+
+.stripe-status {
+  margin-bottom: 16px;
+  
+  .stripe-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    color: #1976d2;
+    font-size: 14px;
+  }
+}
+
+.card-element-container {
+  position: relative;
+  
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  .stripe-not-ready {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 16px;
+    border-radius: 4px;
+    
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.debug-info {
+  border-left: 4px solid #2196f3;
+  background: #e3f2fd !important;
+  color: #1976d2;
+}
+
+.pay-button {
+  &:disabled {
+    background-color: #f5f5f5 !important;
+    color: #999 !important;
+    
+    .mat-button-wrapper {
+      opacity: 0.6;
+    }
+  }
+  
+  span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+// Animation pour le spinner
+@keyframes stripe-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.stripe-loading mat-spinner {
+  animation: stripe-pulse 2s infinite;
+}
+
+// Amélioration de l'élément Stripe
+.card-element {
+  &.StripeElement {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+    
+    &:hover {
+      border-color: #aaa;
+    }
+    
+    &.StripeElement--focus {
+      border-color: #2196f3 !important;
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2) !important;
+    }
+    
+    &.StripeElement--invalid {
+      border-color: #f44336 !important;
+    }
+    
+    &.StripeElement--complete {
+      border-color: #4caf50 !important;
+    }
+  }
+}
+
+// État de chargement pour toute la section
+.card-section {
+  position: relative;
+  
+  &.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1;
+    border-radius: 8px;
+  }
+}

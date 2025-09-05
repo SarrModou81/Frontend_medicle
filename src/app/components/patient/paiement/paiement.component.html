@@ -1,4 +1,4 @@
-<!-- src/app/components/patient/paiement/paiement.component.html -->
+<!-- src/app/components/patient/paiement/paiement.component.html - VERSION CORRIGÉE -->
 <div class="paiement-container" *ngIf="!isLoading">
   <div class="page-header">
     <button mat-icon-button (click)="retourner()" class="back-button">
@@ -49,14 +49,17 @@
         <!-- Méthode de paiement -->
         <div class="payment-method-section">
           <h3>Méthode de paiement</h3>
-          <mat-radio-group formControlName="methode">
+          <mat-radio-group formControlName="methode" class="payment-options">
             <mat-radio-button value="stripe" class="payment-option">
               <div class="payment-content">
-                <mat-icon>credit_card</mat-icon>
-                <span>Carte bancaire</span>
+                <div class="payment-header">
+                  <mat-icon>credit_card</mat-icon>
+                  <span>Carte bancaire</span>
+                </div>
+                <small>Paiement sécurisé par Stripe</small>
                 <div class="card-icons">
-                  <img src="assets/images/visa.png" alt="Visa" class="card-icon">
-                  <img src="assets/images/mastercard.png" alt="Mastercard" class="card-icon">
+                  <span class="card-icon">💳</span>
+                  <span class="card-text">Visa, Mastercard</span>
                 </div>
               </div>
             </mat-radio-button>
@@ -66,11 +69,34 @@
         <!-- Formulaire de carte -->
         <div class="card-section" *ngIf="paiementForm.get('methode')?.value === 'stripe'">
           <h3>Informations de carte</h3>
-          <div class="card-element-container">
+          
+          <!-- Status de Stripe -->
+          <div class="stripe-status" *ngIf="!stripeReady">
+            <div class="stripe-loading">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Initialisation du système de paiement...</span>
+            </div>
+          </div>
+          
+          <!-- Debug info (à retirer en production) -->
+          <div class="debug-info" *ngIf="false" style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-size: 12px;">
+            <strong>Debug Stripe:</strong><br>
+            Service chargé: {{ isStripeLoaded }}<br>
+            Carte montée: {{ isCardMounted }}<br>
+            Prêt: {{ stripeReady }}
+          </div>
+          
+          <div class="card-element-container" [class.disabled]="!stripeReady">
             <div id="card-element" class="card-element">
               <!-- Stripe Elements injectera le formulaire de carte ici -->
             </div>
             <div id="card-errors" class="card-errors" role="alert"></div>
+            
+            <!-- Message si Stripe n'est pas prêt -->
+            <div *ngIf="!stripeReady" class="stripe-not-ready">
+              <mat-icon>warning</mat-icon>
+              <span>Chargement du système de paiement en cours...</span>
+            </div>
           </div>
         </div>
 
@@ -103,10 +129,12 @@
       <button mat-raised-button 
               color="primary" 
               (click)="onSubmit()"
-              [disabled]="!paiementForm.valid || isProcessing"
+              [disabled]="!isFormValid"
               class="pay-button">
         <mat-icon *ngIf="isProcessing" class="spinner">refresh</mat-icon>
-        {{ isProcessing ? 'Traitement...' : 'Payer ' + formatPrix(rendezVous?.montant || 0) }}
+        <span *ngIf="!stripeReady && !isProcessing">Initialisation...</span>
+        <span *ngIf="stripeReady && !isProcessing">Payer {{ formatPrix(rendezVous?.montant || 0) }}</span>
+        <span *ngIf="isProcessing">Traitement...</span>
       </button>
     </mat-card-actions>
   </mat-card>
