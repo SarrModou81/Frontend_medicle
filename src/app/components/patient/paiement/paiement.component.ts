@@ -1,4 +1,4 @@
-// src/app/components/patient/paiement/paiement.component.ts - CORRECTION DE L'ACCÈS
+// src/app/components/patient/paiement/paiement.component.ts - VERSION CORRIGÉE AVEC CONFIRMATION AUTO
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -24,20 +24,20 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
   // Paramètres
   rdvId: number = 0;
   clientSecret: string = '';
+  paiementId: number = 0; // AJOUT : ID du paiement créé
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private apiService: ApiService,
-    public stripeService: StripeService, // CHANGÉ : maintenant public
+    public stripeService: StripeService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     console.log('🔄 Initialisation du composant paiement');
     
-    // Récupérer l'ID du rendez-vous depuis la route
     const rdvIdParam = this.route.snapshot.paramMap.get('rendezVousId') || this.route.snapshot.paramMap.get('id');
     this.rdvId = Number(rdvIdParam);
     
@@ -56,7 +56,6 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Délai pour s'assurer que le DOM est prêt
     setTimeout(() => {
       if (this.stripeService.isLoaded() && !this.cardMounted) {
         this.mountCardElement();
@@ -85,7 +84,6 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
         if (response.success && response.data) {
           this.rendezVous = response.data;
           
-          // Vérifier que le rendez-vous peut être payé
           if (this.rendezVous.statut_paiement === 'paye') {
             this.snackBar.open('Ce rendez-vous a déjà été payé', 'Fermer', {
               duration: 3000,
@@ -115,7 +113,6 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
       await this.stripeService.loadStripe();
       console.log('✅ Stripe chargé avec succès');
       
-      // Si la vue est déjà chargée, monter l'élément carte
       if (document.getElementById('card-element')) {
         this.mountCardElement();
       }
@@ -144,7 +141,6 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cardMounted = true;
         console.log('✅ Élément carte monté');
 
-        // Gérer les erreurs en temps réel
         this.card.on('change', ({ error }: any) => {
           const displayError = document.getElementById('card-errors');
           if (displayError) {
@@ -192,6 +188,7 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (response) => {
         if (response.success && response.client_secret) {
           this.clientSecret = response.client_secret;
+          this.paiementId = response.paiement_id; // AJOUT : Stocker l'ID du paiement
           console.log('✅ PaymentIntent créé');
           this.confirmerPaiement();
         } else {
@@ -233,29 +230,37 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
         this.card,
         billingDetails
       );
-
-      this.isProcessing = false;
       
       if (result.error) {
-        // Erreur de paiement
+        // GESTION D'ERREUR AMÉLIORÉE
+        this.isProcessing = false;
         console.error('❌ Erreur paiement:', result.error);
-        const errorMessage = this.stripeService.translateError(result.error.message);
+        
+        let errorMessage = 'Erreur de paiement';
+        
+        if (result.error.type === 'card_error') {
+          if (result.error.code === 'card_declined') {
+            errorMessage = 'Carte refusée. Vérifiez vos informations ou utilisez une autre carte.';
+          } else if (result.error.code === 'expired_card') {
+            errorMessage = 'Votre carte a expiré.';
+          } else if (result.error.code === 'insufficient_funds') {
+            errorMessage = 'Fonds insuffisants sur votre carte.';
+          } else if (result.error.code === 'incorrect_cvc') {
+            errorMessage = 'Code de sécurité incorrect.';
+          } else {
+            errorMessage = this.stripeService.translateError(result.error.message);
+          }
+        }
+        
         this.snackBar.open(errorMessage, 'Fermer', {
           duration: 5000,
           panelClass: ['error-snackbar']
         });
       } else {
-        // Paiement réussi
-        console.log('✅ Paiement réussi:', result.paymentIntent);
-        this.snackBar.open('Paiement effectué avec succès !', 'Fermer', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
+        // PAIEMENT RÉUSSI CÔTÉ STRIPE - MAINTENANT CONFIRMER CÔTÉ SERVEUR
+        console.log('✅ Paiement réussi côté Stripe:', result.paymentIntent);
         
-        // Rediriger vers les rendez-vous avec un délai
-        setTimeout(() => {
-          this.router.navigate(['/dashboard/patient/rendez-vous']);
-        }, 1500);
+        this.confirmerPaiementCoteServeur();
       }
     } catch (error) {
       this.isProcessing = false;
@@ -265,6 +270,57 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
         panelClass: ['error-snackbar']
       });
     }
+  }
+
+  // NOUVELLE MÉTHODE : Confirmer le paiement côté serveur après succès Stripe
+  private confirmerPaiementCoteServeur(): void {
+    console.log('📡 Confirmation côté serveur...');
+    
+    this.apiService.confirmerPaiement(this.paiementId).subscribe({
+      next: (response) => {
+        this.isProcessing = false;
+        
+        if (response.success) {
+          console.log('🎉 Paiement confirmé côté serveur');
+          
+          this.snackBar.open('Paiement effectué avec succès !', 'Fermer', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+          
+          // Rediriger vers les rendez-vous avec un délai
+          setTimeout(() => {
+            this.router.navigate(['/dashboard/patient/rendez-vous']);
+          }, 1500);
+        } else {
+          console.error('❌ Échec confirmation serveur:', response.message);
+          this.snackBar.open('Erreur de confirmation: ' + (response.message || 'Erreur inconnue'), 'Fermer', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      },
+      error: (error) => {
+        this.isProcessing = false;
+        console.error('❌ Erreur confirmation serveur:', error);
+        
+        // Le paiement a réussi côté Stripe mais a échoué côté serveur
+        // Informer l'utilisateur et lui donner des instructions
+        this.snackBar.open(
+          'Paiement traité par la banque mais erreur de synchronisation. Contactez le support si nécessaire.', 
+          'Fermer', 
+          {
+            duration: 8000,
+            panelClass: ['warning-snackbar']
+          }
+        );
+        
+        // Rediriger quand même vers les rendez-vous après un délai
+        setTimeout(() => {
+          this.router.navigate(['/dashboard/patient/rendez-vous']);
+        }, 3000);
+      }
+    });
   }
 
   private markFormGroupTouched(): void {
@@ -317,7 +373,6 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.stripeService.isLoaded() && this.cardMounted;
   }
 
-  // Méthodes publiques pour le template de debug
   get isStripeLoaded(): boolean {
     return this.stripeService.isLoaded();
   }

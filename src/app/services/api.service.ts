@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 
 // ============= INTERFACES =============
 export interface ApiResponse<T = any> {
+  paiement_id: number;
   success: boolean;
   message?: string;
   data?: T;
@@ -339,8 +340,23 @@ export class ApiService {
     return this.http.post<ApiResponse<{ client_secret: string; paiement_id: number }>>(`${this.apiUrl}/paiements`, data);
   }
 
-  confirmerPaiement(id: number): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.apiUrl}/paiements/${id}/confirmer`, {});
+  confirmerPaiement(id: number): Observable<ApiResponse<{ paiement: Paiement; rendez_vous: RendezVous }>> {
+    return this.http.post<ApiResponse<{ paiement: Paiement; rendez_vous: RendezVous }>>(`${this.apiUrl}/paiements/${id}/confirmer`, {});
+  }
+
+  getHistoriquePaiements(params: any = {}): Observable<ApiResponse<PaginatedResponse<Paiement>>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get<ApiResponse<PaginatedResponse<Paiement>>>(`${this.apiUrl}/paiements/historique`, { params: httpParams });
+  }
+
+  // NOUVELLE MÉTHODE : Tester la configuration Stripe
+  testerStripe(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/paiements/test-stripe`);
   }
 
   // ============= JUSTIFICATIFS =============
