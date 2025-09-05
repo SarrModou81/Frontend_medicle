@@ -39,6 +39,10 @@ import { AuthService } from './services/auth.service';
 import { ApiService } from './services/api.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
+// Guards
+import { AuthGuard } from './guards/auth.guard';
+import { RoleGuard } from './guards/role.guard';
+
 // Components
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
@@ -143,6 +147,8 @@ import { ChatIaComponent } from './components/shared/chat-ia/chat-ia.component';
   providers: [
     AuthService,
     ApiService,
+    AuthGuard,
+    RoleGuard,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

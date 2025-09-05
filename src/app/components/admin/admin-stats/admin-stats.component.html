@@ -1,0 +1,297 @@
+<!-- src/app/components/admin/admin-stats/admin-stats.component.html -->
+<div class="admin-stats-container">
+  <div class="page-header">
+    <h1>Statistiques et rapports</h1>
+    <p>Analyses détaillées et génération de rapports</p>
+    
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="periode-selector">
+        <mat-label>Période d'analyse</mat-label>
+        <mat-select [value]="'mois'" (selectionChange)="onPeriodeChange($event.value)">
+          <mat-option *ngFor="let option of periodeOptions" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <button mat-raised-button color="primary" (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des statistiques...</p>
+  </div>
+
+  <div *ngIf="!isLoading && statistiques" class="stats-content">
+    
+    <!-- Vue d'ensemble -->
+    <div class="overview-section">
+      <h2>Vue d'ensemble</h2>
+      <div class="overview-grid">
+        <mat-card class="overview-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>people</mat-icon>
+              <span class="stat-label">Utilisateurs totaux</span>
+            </div>
+            <div class="stat-number">{{ statistiques.overview.total_users | number }}</div>
+            <div class="stat-growth" 
+                 [style.color]="getCroissanceColor(statistiques.overview.croissance_mensuelle)">
+              <mat-icon>{{ statistiques.overview.croissance_mensuelle >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+              {{ formatPourcentage(statistiques.overview.croissance_mensuelle) }}
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="overview-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>event</mat-icon>
+              <span class="stat-label">Rendez-vous totaux</span>
+            </div>
+            <div class="stat-number">{{ statistiques.overview.total_rdv | number }}</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="overview-card">
+          <mat-card-content>
+            <div class="stat-header">
+              <mat-icon>attach_money</mat-icon>
+              <span class="stat-label">Revenus totaux</span>
+            </div>
+            <div class="stat-number">{{ formatMontant(statistiques.overview.total_revenus) }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Évolution dans le temps -->
+    <div class="evolution-section" *ngIf="statistiques.evolution && statistiques.evolution.length > 0">
+      <h2>Évolution dans le temps</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div class="evolution-chart">
+            <div *ngFor="let periode of statistiques.evolution" class="periode-item">
+              <div class="periode-label">{{ periode.label }}</div>
+              <div class="periode-stats">
+                <div class="periode-stat">
+                  <span class="stat-label">RDV</span>
+                  <span class="stat-value">{{ periode.rdv | number }}</span>
+                </div>
+                <div class="periode-stat">
+                  <span class="stat-label">Revenus</span>
+                  <span class="stat-value">{{ formatMontant(periode.revenus) }}</span>
+                </div>
+                <div class="periode-stat" *ngIf="periode.nouveaux_utilisateurs">
+                  <span class="stat-label">Nouveaux users</span>
+                  <span class="stat-value">{{ periode.nouveaux_utilisateurs | number }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Top spécialités -->
+    <div class="top-specialites-section" *ngIf="statistiques.top_specialites && statistiques.top_specialites.length > 0">
+      <h2>Spécialités les plus populaires</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div class="specialites-chart">
+            <div *ngFor="let specialite of statistiques.top_specialites; let i = index" 
+                 class="specialite-item">
+              <div class="specialite-info">
+                <span class="specialite-nom">{{ specialite.nom || specialite.specialite }}</span>
+                <span class="specialite-count">{{ specialite.nombre_consultations }} consultations</span>
+              </div>
+              <div class="specialite-bar">
+                <div class="specialite-progress" 
+                     [style.width.%]="(specialite.nombre_consultations / statistiques.top_specialites[0].nombre_consultations) * 100"
+                     [style.background-color]="getSpecialiteColor(i)"></div>
+              </div>
+              <div class="specialite-revenus">{{ formatMontant(specialite.revenus) }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Top médecins -->
+    <div class="top-medecins-section" *ngIf="statistiques.top_medecins && statistiques.top_medecins.length > 0">
+      <h2>Médecins les plus actifs</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div class="medecins-list">
+            <div *ngFor="let medecin of statistiques.top_medecins; let i = index" 
+                 class="medecin-item">
+              <div class="medecin-rank">{{ i + 1 }}</div>
+              <div class="medecin-info">
+                <div class="medecin-nom">{{ medecin.nom }}</div>
+                <div class="medecin-specialite">{{ medecin.specialite }}</div>
+              </div>
+              <div class="medecin-stats">
+                <div class="medecin-stat">
+                  <span class="stat-label">Consultations</span>
+                  <span class="stat-value">{{ medecin.nombre_consultations }}</span>
+                </div>
+                <div class="medecin-stat">
+                  <span class="stat-label">Revenus</span>
+                  <span class="stat-value">{{ formatMontant(medecin.revenus) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Répartition des paiements -->
+    <div class="paiements-section" *ngIf="statistiques.repartition_paiements">
+      <h2>Répartition des paiements</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div class="paiements-grid">
+            <div class="paiement-stat">
+              <mat-icon class="paiement-icon online">credit_card</mat-icon>
+              <div class="paiement-info">
+                <div class="paiement-label">Paiements en ligne</div>
+                <div class="paiement-value">{{ statistiques.repartition_paiements.en_ligne }}</div>
+              </div>
+            </div>
+            
+            <div class="paiement-stat">
+              <mat-icon class="paiement-icon cabinet">payment</mat-icon>
+              <div class="paiement-info">
+                <div class="paiement-label">Paiements au cabinet</div>
+                <div class="paiement-value">{{ statistiques.repartition_paiements.au_cabinet }}</div>
+              </div>
+            </div>
+            
+            <div class="paiement-stat">
+              <mat-icon class="paiement-icon pending">schedule</mat-icon>
+              <div class="paiement-info">
+                <div class="paiement-label">En attente</div>
+                <div class="paiement-value">{{ statistiques.repartition_paiements.en_attente }}</div>
+              </div>
+            </div>
+            
+            <div class="paiement-stat">
+              <mat-icon class="paiement-icon failed">error</mat-icon>
+              <div class="paiement-info">
+                <div class="paiement-label">Échecs</div>
+                <div class="paiement-value">{{ statistiques.repartition_paiements.echoues }}</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Activité récente -->
+    <div class="activite-section" *ngIf="statistiques.activite_recente && statistiques.activite_recente.length > 0">
+      <h2>Activité récente</h2>
+      <mat-card class="chart-card">
+        <mat-card-content>
+          <div class="activite-list">
+            <div *ngFor="let activite of statistiques.activite_recente" class="activite-item">
+              <mat-icon class="activite-icon" 
+                       [style.color]="getActivityColor(activite.type)">
+                {{ getActivityIcon(activite.type) }}
+              </mat-icon>
+              <div class="activite-content">
+                <div class="activite-description">{{ activite.description }}</div>
+                <div class="activite-date">{{ activite.date | date:'short':'fr' }}</div>
+              </div>
+              <div class="activite-montant" *ngIf="activite.montant">
+                {{ formatMontant(activite.montant) }}
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Section génération de rapports -->
+  <div class="rapport-section">
+    <h2>Génération de rapports</h2>
+    <mat-card class="rapport-card">
+      <mat-card-header>
+        <mat-card-title>Générer un rapport personnalisé</mat-card-title>
+        <mat-card-subtitle>Exportez des données détaillées selon vos critères</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="rapportForm" (ngSubmit)="genererRapport()">
+          <div class="rapport-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Type de rapport</mat-label>
+                <mat-select formControlName="type">
+                  <mat-option *ngFor="let option of typeRapportOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Date de début</mat-label>
+                <input matInput type="date" formControlName="date_debut">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Date de fin</mat-label>
+                <input matInput type="date" formControlName="date_fin">
+              </mat-form-field>
+            </div>
+
+            <div class="form-actions">
+              <button mat-raised-button 
+                      color="primary" 
+                      type="submit"
+                      [disabled]="!rapportForm.valid || isGeneratingRapport">
+                <mat-icon *ngIf="isGeneratingRapport" class="spinner">refresh</mat-icon>
+                {{ isGeneratingRapport ? 'Génération...' : 'Générer le rapport' }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Résultats du rapport -->
+    <div *ngIf="dernierRapport" class="rapport-results">
+      <mat-card class="results-card">
+        <mat-card-header>
+          <mat-card-title>{{ getRapportTypeLabel(dernierRapport.type) }}</mat-card-title>
+          <mat-card-subtitle>
+            Période: {{ dernierRapport.periode.debut }} - {{ dernierRapport.periode.fin }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="rapport-summary">
+            <pre>{{ dernierRapport.data | json }}</pre>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions>
+          <button mat-button (click)="exporterRapport('json')">
+            <mat-icon>download</mat-icon>
+            Exporter JSON
+          </button>
+          <button mat-button (click)="exporterRapport('csv')">
+            <mat-icon>table_chart</mat-icon>
+            Exporter CSV
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>

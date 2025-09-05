@@ -1,0 +1,275 @@
+<!-- src/app/components/admin/admin-specialites/admin-specialites.component.html -->
+<div class="admin-specialites-container">
+  <div class="page-header">
+    <h1>Gestion des spécialités médicales</h1>
+    <p>Administrez les spécialités disponibles sur la plateforme</p>
+  </div>
+
+  <!-- Actions et filtres -->
+  <mat-card class="controls-card">
+    <mat-card-content>
+      <div class="controls-row">
+        <div class="filters">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Rechercher</mat-label>
+            <input matInput [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" placeholder="Nom de spécialité...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Statut</mat-label>
+            <mat-select [(value)]="selectedActive" (selectionChange)="onFilterChange()">
+              <mat-option *ngFor="let option of activeOptions" [value]="option.value">
+                {{ option.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-raised-button color="warn" (click)="clearFilters()">
+            <mat-icon>clear</mat-icon>
+            Effacer
+          </button>
+        </div>
+
+        <div class="actions">
+          <button mat-raised-button color="primary" (click)="ouvrirDialogSpecialite()">
+            <mat-icon>add</mat-icon>
+            Nouvelle spécialité
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des spécialités...</p>
+  </div>
+
+  <!-- Tableau des spécialités -->
+  <mat-card class="table-card" *ngIf="!isLoading">
+    <mat-table [dataSource]="specialites" class="specialites-table">
+      
+      <!-- Colonne Icône -->
+      <ng-container matColumnDef="icone">
+        <mat-header-cell *matHeaderCellDef>Icône</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <div class="icone-cell">
+            <mat-icon class="specialite-icon">{{ getIconePreview(specialite.icone) }}</mat-icon>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Nom -->
+      <ng-container matColumnDef="nom">
+        <mat-header-cell *matHeaderCellDef>Nom</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <div class="nom-cell">
+            <div class="specialite-nom">{{ specialite.nom }}</div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Description -->
+      <ng-container matColumnDef="description">
+        <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <div class="description-cell">
+            <span *ngIf="specialite.description">{{ specialite.description }}</span>
+            <span *ngIf="!specialite.description" class="text-muted">Aucune description</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Prix -->
+      <ng-container matColumnDef="prix">
+        <mat-header-cell *matHeaderCellDef>Prix consultation</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <div class="prix-cell">
+            {{ formatPrix(specialite.prix_consultation) }}
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Médecins -->
+      <ng-container matColumnDef="medecins">
+        <mat-header-cell *matHeaderCellDef>Médecins</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <div class="medecins-cell">
+            <mat-chip class="medecins-count">
+              {{ specialite.medecins_count || 0 }} médecin(s)
+            </mat-chip>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Statut -->
+      <ng-container matColumnDef="statut">
+        <mat-header-cell *matHeaderCellDef>Statut</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <mat-chip [color]="getStatutColor(specialite.active)" selected>
+            {{ getStatutLabel(specialite.active) }}
+          </mat-chip>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Date création -->
+      <ng-container matColumnDef="date_creation">
+        <mat-header-cell *matHeaderCellDef>Créée le</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          {{ specialite.created_at | date:'dd/MM/yyyy' }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Colonne Actions -->
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+        <mat-cell *matCellDef="let specialite">
+          <div class="actions-cell">
+            <button mat-icon-button [matMenuTriggerFor]="actionsMenu" color="primary">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            
+            <mat-menu #actionsMenu="matMenu">
+              <button mat-menu-item (click)="ouvrirDialogSpecialite(specialite)">
+                <mat-icon>edit</mat-icon>
+                <span>Modifier</span>
+              </button>
+              
+              <button mat-menu-item (click)="toggleStatut(specialite)">
+                <mat-icon>{{ specialite.active ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <span>{{ specialite.active ? 'Désactiver' : 'Activer' }}</span>
+              </button>
+              
+              <mat-divider></mat-divider>
+              
+              <button mat-menu-item (click)="supprimerSpecialite(specialite)" color="warn">
+                <mat-icon>delete</mat-icon>
+                <span>Supprimer</span>
+              </button>
+            </mat-menu>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+    </mat-table>
+
+    <!-- Message si aucune spécialité -->
+    <div *ngIf="specialites.length === 0" class="no-specialites">
+      <mat-icon class="no-specialites-icon">medical_services</mat-icon>
+      <h3>Aucune spécialité trouvée</h3>
+      <p>Aucune spécialité ne correspond aux critères sélectionnés.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-container">
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="20"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event.pageIndex + 1)"
+        [showFirstLastButtons]="true">
+      </mat-paginator>
+    </div>
+  </mat-card>
+</div>
+
+<!-- Dialog pour créer/modifier une spécialité -->
+<div *ngIf="showDialog" class="dialog-overlay" (click)="fermerDialog()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <mat-card class="specialite-dialog">
+      <mat-card-header>
+        <div class="dialog-header">
+          <h2>{{ isEditMode ? 'Modifier la spécialité' : 'Nouvelle spécialité' }}</h2>
+          <button mat-icon-button (click)="fermerDialog()" class="close-btn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="specialiteForm" (ngSubmit)="sauvegarderSpecialite()">
+          
+          <div class="form-section">
+            <h3>Informations générales</h3>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nom de la spécialité</mat-label>
+              <input matInput formControlName="nom" placeholder="Ex: Cardiologie">
+              <mat-error *ngIf="specialiteForm.get('nom')?.hasError('required')">
+                Le nom est obligatoire
+              </mat-error>
+              <mat-error *ngIf="specialiteForm.get('nom')?.hasError('minlength')">
+                Le nom doit contenir au moins 2 caractères
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput formControlName="description" rows="3" 
+                        placeholder="Description de la spécialité..."></textarea>
+              <mat-hint align="end">{{ specialiteForm.get('description')?.value?.length || 0 }}/1000</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <div class="form-section">
+            <h3>Apparence et tarification</h3>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Icône</mat-label>
+                <mat-select formControlName="icone">
+                  <mat-option *ngFor="let icone of iconesDisponibles" [value]="icone">
+                    <div class="icone-option">
+                      <mat-icon>{{ icone }}</mat-icon>
+                      <span>{{ icone }}</span>
+                    </div>
+                  </mat-option>
+                </mat-select>
+                <mat-hint>Icône affichée dans l'interface</mat-hint>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Prix de consultation (FCFA)</mat-label>
+                <input matInput type="number" formControlName="prix_consultation" 
+                       min="0" max="1000000" placeholder="25000">
+                <mat-error *ngIf="specialiteForm.get('prix_consultation')?.hasError('required')">
+                  Le prix est obligatoire
+                </mat-error>
+                <mat-error *ngIf="specialiteForm.get('prix_consultation')?.hasError('min')">
+                  Le prix doit être positif
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Statut</h3>
+            
+            <mat-slide-toggle formControlName="active" color="primary">
+              {{ specialiteForm.get('active')?.value ? 'Spécialité active' : 'Spécialité inactive' }}
+            </mat-slide-toggle>
+            <div class="toggle-hint">
+              <small>Les spécialités inactives ne sont pas visibles par les patients</small>
+            </div>
+          </div>
+
+        </form>
+      </mat-card-content>
+
+      <mat-card-actions class="dialog-actions">
+        <button mat-button (click)="fermerDialog()">
+          Annuler
+        </button>
+        <button mat-raised-button color="primary" 
+                [disabled]="!specialiteForm.valid"
+                (click)="sauvegarderSpecialite()">
+          {{ isEditMode ? 'Modifier' : 'Créer' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
