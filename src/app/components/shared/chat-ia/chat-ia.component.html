@@ -1,0 +1,102 @@
+<!-- Chat IA Floating Button -->
+<div class="chat-ia-container">
+  <!-- Bouton flottant -->
+  <button mat-fab color="primary" class="chat-toggle-btn" (click)="toggleChat()" *ngIf="!isOpen">
+    <mat-icon>smart_toy</mat-icon>
+  </button>
+
+  <!-- Fenêtre de chat -->
+  <mat-card class="chat-window" *ngIf="isOpen">
+    <!-- Header du chat -->
+    <div class="chat-header">
+      <div class="chat-title">
+        <mat-icon>smart_toy</mat-icon>
+        <span>Assistant Médical IA</span>
+      </div>
+      <div class="chat-actions">
+        <button mat-icon-button (click)="clearChat()" matTooltip="Effacer la conversation">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button (click)="closeChat()" matTooltip="Fermer">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages">
+      <div *ngFor="let message of messages" 
+           class="message" 
+           [class.user-message]="message.isUser"
+           [class.ia-message]="!message.isUser">
+        
+        <div class="message-content">
+          <div class="message-avatar" *ngIf="!message.isUser">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+          
+          <div class="message-bubble">
+            <p>{{ message.content }}</p>
+            <small class="message-time">
+              {{ message.timestamp | date:'HH:mm' }}
+            </small>
+          </div>
+          
+          <div class="message-avatar" *ngIf="message.isUser">
+            <mat-icon>person</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicateur de saisie -->
+      <div *ngIf="isLoading" class="typing-indicator">
+        <div class="message-content">
+          <div class="message-avatar">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+          <div class="typing-bubble">
+            <div class="typing-animation">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone de saisie -->
+    <div class="chat-input">
+      <form [formGroup]="chatForm" (ngSubmit)="onSubmit()" class="input-form">
+        <mat-form-field appearance="outline" class="message-input">
+          <mat-label>Tapez votre message...</mat-label>
+          <textarea 
+            matInput 
+            formControlName="message"
+            rows="2"
+            maxlength="1000"
+            (keydown.enter)="$event.ctrlKey && onSubmit()"
+            placeholder="Posez votre question sur la santé ou la plateforme..."></textarea>
+          <mat-hint align="end">{{ chatForm.get('message')?.value?.length || 0 }}/1000</mat-hint>
+        </mat-form-field>
+        
+        <button 
+          mat-fab 
+          color="primary" 
+          type="submit"
+          [disabled]="!chatForm.valid || isLoading"
+          class="send-btn">
+          <mat-icon>send</mat-icon>
+        </button>
+      </form>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="chat-disclaimer">
+      <small>
+        <mat-icon>info</mat-icon>
+        Cet assistant fournit des informations générales. Pour un diagnostic médical, consultez un professionnel.
+      </small>
+    </div>
+  </mat-card>
+</div>

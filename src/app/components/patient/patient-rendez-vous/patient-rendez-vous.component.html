@@ -1,0 +1,218 @@
+<div class="patient-rdv-container">
+  <div class="page-header">
+    <h1>Mes rendez-vous</h1>
+    <p>Gérez vos consultations médicales</p>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(value)]="selectedStatut" (selectionChange)="onFilterChange()">
+            <mat-option *ngFor="let option of statutOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de début</mat-label>
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="dateDebut" (dateChange)="onFilterChange()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de fin</mat-label>
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="dateFin" (dateChange)="onFilterChange()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-raised-button color="warn" (click)="clearFilters()" class="clear-btn">
+          <mat-icon>clear</mat-icon>
+          Effacer les filtres
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement de vos rendez-vous...</p>
+  </div>
+
+  <!-- Liste des rendez-vous -->
+  <div *ngIf="!isLoading">
+    <!-- Version Desktop - Tableau -->
+    <div class="desktop-view">
+      <mat-card class="table-card">
+        <mat-table [dataSource]="rendezVous" class="rdv-table">
+          
+          <!-- Colonne Date -->
+          <ng-container matColumnDef="date">
+            <mat-header-cell *matHeaderCellDef>Date & Heure</mat-header-cell>
+            <mat-cell *matCellDef="let rdv">
+              <div class="date-cell">
+                <div class="date-time">{{ formatDate(rdv.date_heure) }}</div>
+                <div class="duration">{{ rdv.duree }} min</div>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Colonne Médecin -->
+          <ng-container matColumnDef="medecin">
+            <mat-header-cell *matHeaderCellDef>Médecin</mat-header-cell>
+            <mat-cell *matCellDef="let rdv">
+              <div class="medecin-cell">
+                <div class="medecin-name">Dr. {{ rdv.medecin.user.nom }} {{ rdv.medecin.user.prenom }}</div>
+                <div class="cabinet-info" *ngIf="rdv.medecin.cabinet_nom">{{ rdv.medecin.cabinet_nom }}</div>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Colonne Spécialité -->
+          <ng-container matColumnDef="specialite">
+            <mat-header-cell *matHeaderCellDef>Spécialité</mat-header-cell>
+            <mat-cell *matCellDef="let rdv">
+              <mat-chip class="specialite-chip">{{ rdv.medecin.specialite.nom }}</mat-chip>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Colonne Statut -->
+          <ng-container matColumnDef="statut">
+            <mat-header-cell *matHeaderCellDef>Statut</mat-header-cell>
+            <mat-cell *matCellDef="let rdv">
+              <mat-chip [color]="getStatutColor(rdv.statut)" selected>
+                {{ getStatutLabel(rdv.statut) }}
+              </mat-chip>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Colonne Paiement -->
+          <ng-container matColumnDef="paiement">
+            <mat-header-cell *matHeaderCellDef>Paiement</mat-header-cell>
+            <mat-cell *matCellDef="let rdv">
+              <div class="paiement-cell">
+                <div class="montant">{{ formatPrix(rdv.montant) }}</div>
+                <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" selected class="paiement-chip">
+                  {{ getPaiementStatutLabel(rdv.statut_paiement) }}
+                </mat-chip>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Colonne Actions -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+            <mat-cell *matCellDef="let rdv">
+              <div class="actions-cell">
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu" color="primary">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item (click)="telechargerJustificatif(rdv)" 
+                          [disabled]="rdv.statut !== 'termine' && rdv.statut !== 'confirme'">
+                    <mat-icon>description</mat-icon>
+                    <span>{{ rdv.justificatif ? 'Télécharger justificatif' : 'Générer justificatif' }}</span>
+                  </button>
+                  
+                  <button mat-menu-item (click)="annulerRendezVous(rdv)" 
+                          [disabled]="!peutAnnuler(rdv)"
+                          color="warn">
+                    <mat-icon>cancel</mat-icon>
+                    <span>Annuler</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+        </mat-table>
+      </mat-card>
+    </div>
+
+    <!-- Version Mobile - Cartes -->
+    <div class="mobile-view">
+      <mat-card *ngFor="let rdv of rendezVous" class="rdv-mobile-card">
+        <mat-card-content>
+          <div class="rdv-mobile-header">
+            <div class="date-info">
+              <div class="date-time">{{ formatDate(rdv.date_heure) }}</div>
+              <div class="duration">{{ rdv.duree }} min</div>
+            </div>
+            <mat-chip [color]="getStatutColor(rdv.statut)" selected>
+              {{ getStatutLabel(rdv.statut) }}
+            </mat-chip>
+          </div>
+
+          <div class="rdv-mobile-content">
+            <div class="medecin-info">
+              <h3>Dr. {{ rdv.medecin.user.nom }} {{ rdv.medecin.user.prenom }}</h3>
+              <p class="specialite">{{ rdv.medecin.specialite.nom }}</p>
+              <p class="cabinet" *ngIf="rdv.medecin.cabinet_nom">{{ rdv.medecin.cabinet_nom }}</p>
+            </div>
+
+            <div class="paiement-info">
+              <div class="montant">{{ formatPrix(rdv.montant) }}</div>
+              <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" selected class="paiement-chip">
+                {{ getPaiementStatutLabel(rdv.statut_paiement) }}
+              </mat-chip>
+            </div>
+
+            <div class="motif" *ngIf="rdv.motif">
+              <mat-icon>note</mat-icon>
+              <span>{{ rdv.motif }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-button (click)="telechargerJustificatif(rdv)" 
+                  [disabled]="rdv.statut !== 'termine' && rdv.statut !== 'confirme'">
+            <mat-icon>description</mat-icon>
+            {{ rdv.justificatif ? 'Télécharger' : 'Générer' }} justificatif
+          </button>
+          
+          <button mat-button (click)="annulerRendezVous(rdv)" 
+                  [disabled]="!peutAnnuler(rdv)"
+                  color="warn">
+            <mat-icon>cancel</mat-icon>
+            Annuler
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Message si aucun rendez-vous -->
+    <div *ngIf="rendezVous.length === 0" class="no-rdv">
+      <mat-card class="no-rdv-card">
+        <mat-card-content>
+          <mat-icon class="no-rdv-icon">event_note</mat-icon>
+          <h3>Aucun rendez-vous trouvé</h3>
+          <p>Vous n'avez aucun rendez-vous correspondant aux critères sélectionnés.</p>
+          <button mat-raised-button color="primary" [routerLink]="['/dashboard/patient/medecins']">
+            Prendre un rendez-vous
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-container">
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="10"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event.pageIndex + 1)"
+        [showFirstLastButtons]="true">
+      </mat-paginator>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,333 @@
+.patient-rdv-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  margin-bottom: 24px;
+  text-align: center;
+  
+  h1 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 2.2rem;
+    font-weight: 300;
+  }
+  
+  p {
+    color: #666;
+    font-size: 1.1rem;
+  }
+}
+
+.filters-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  
+  .filters-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    
+    .filter-field {
+      min-width: 200px;
+      flex: 1;
+    }
+    
+    .clear-btn {
+      height: 40px;
+      white-space: nowrap;
+    }
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  
+  mat-spinner {
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+// =============== DESKTOP VIEW ===============
+.desktop-view {
+  display: block;
+  
+  .table-card {
+    border-radius: 12px;
+    overflow: hidden;
+    
+    .rdv-table {
+      width: 100%;
+      
+      .mat-header-cell {
+        font-weight: 600;
+        color: #333;
+        background-color: #f8f9fa;
+      }
+      
+      .mat-cell {
+        padding: 16px 8px;
+      }
+      
+      .mat-row:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+    }
+  }
+  
+  .date-cell {
+    .date-time {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .duration {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  }
+  
+  .medecin-cell {
+    .medecin-name {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .cabinet-info {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  }
+  
+  .specialite-chip {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+  
+  .paiement-cell {
+    .montant {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    
+    .paiement-chip {
+      font-size: 0.8rem;
+    }
+  }
+  
+  .actions-cell {
+    text-align: center;
+  }
+}
+
+// =============== MOBILE VIEW ===============
+.mobile-view {
+  display: none;
+  
+  .rdv-mobile-card {
+    margin-bottom: 16px;
+    border-radius: 12px;
+    
+    .rdv-mobile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      
+      .date-info {
+        .date-time {
+          font-weight: 500;
+          font-size: 1.1rem;
+          margin-bottom: 4px;
+        }
+        
+        .duration {
+          color: #666;
+          font-size: 0.9rem;
+        }
+      }
+    }
+    
+    .rdv-mobile-content {
+      .medecin-info {
+        margin-bottom: 16px;
+        
+        h3 {
+          margin: 0 0 4px 0;
+          font-size: 1.2rem;
+          color: #333;
+        }
+        
+        .specialite {
+          margin: 0 0 4px 0;
+          color: #1976d2;
+          font-weight: 500;
+        }
+        
+        .cabinet {
+          margin: 0;
+          color: #666;
+          font-size: 0.9rem;
+        }
+      }
+      
+      .paiement-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        
+        .montant {
+          font-weight: 600;
+          font-size: 1.1rem;
+          color: #333;
+        }
+      }
+      
+      .motif {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        font-style: italic;
+        
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+    
+    mat-card-actions {
+      padding: 16px;
+      border-top: 1px solid #e0e0e0;
+      gap: 8px;
+      
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+// =============== NO RDV MESSAGE ===============
+.no-rdv {
+  .no-rdv-card {
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    .no-rdv-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    
+    p {
+      margin: 0 0 24px 0;
+      color: #666;
+    }
+  }
+}
+
+// =============== PAGINATION ===============
+.pagination-container {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+// =============== RESPONSIVE ===============
+@media (max-width: 768px) {
+  .desktop-view {
+    display: none;
+  }
+  
+  .mobile-view {
+    display: block;
+  }
+  
+  .filters-row {
+    .filter-field {
+      min-width: 100%;
+    }
+    
+    .clear-btn {
+      width: 100%;
+      margin-top: 8px;
+    }
+  }
+  
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .patient-rdv-container {
+    padding: 16px;
+  }
+  
+  .rdv-mobile-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start !important;
+  }
+}
+
+// =============== STATUS COLORS ===============
+.mat-chip {
+  &[color="primary"] {
+    background-color: #e3f2fd !important;
+    color: #1976d2 !important;
+  }
+  
+  &[color="success"] {
+    background-color: #e8f5e8 !important;
+    color: #2e7d32 !important;
+  }
+  
+  &[color="warn"] {
+    background-color: #ffebee !important;
+    color: #d32f2f !important;
+  }
+  
+  &[color="accent"] {
+    background-color: #fce4ec !important;
+    color: #c2185b !important;
+  }
+}
+
+// =============== ANIMATIONS ===============
+.rdv-mobile-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
