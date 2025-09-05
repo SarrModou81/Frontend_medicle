@@ -1,0 +1,7 @@
+<!-- src/app/components/shared/loading/loading.component.html -->
+<div class="loading-container" [class.overlay]="overlay">
+  <div class="loading-content">
+    <mat-spinner [diameter]="size" [color]="color"></mat-spinner>
+    <p *ngIf="message" class="loading-message">{{ message }}</p>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-// src/app/components/patient/medecin-list/medecin-list.component.ts
+// src/app/components/patient/medecin-list/medecin-list.component.ts - CORRIGÉ
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -90,7 +90,7 @@ export class MedecinListComponent implements OnInit {
 
     this.apiService.getMedecins(params).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.data) {
           this.medecins = response.data.data;
           this.currentPage = response.data.current_page;
           this.totalPages = response.data.last_page;
@@ -138,7 +138,7 @@ export class MedecinListComponent implements OnInit {
   }
 
   formatExperience(annees: number): string {
-    if (annees === 0) {
+    if (!annees || annees === 0) {
       return 'Nouveau';
     } else if (annees === 1) {
       return '1 an d\'expérience';

@@ -1,4 +1,4 @@
-// src/app/components/medecin/medecin-dashboard/medecin-dashboard.component.ts
+// src/app/components/medecin/medecin-dashboard/medecin-dashboard.component.ts - CORRIGÉ
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -28,11 +28,11 @@ export class MedecinDashboardComponent implements OnInit {
     rdv_en_attente: 0,
     rdv_termines: 0,
     rdv_ce_mois: 0,
+    rdv_semaine: 0,
+    rdv_aujourd_hui: 0,
     revenus_mois: 0,
     revenus_total: 0,
     taux_confirmation: 0,
-    rdv_aujourd_hui: 0,
-    rdv_semaine: 0,
     temps_moyen_consultation: 30
   };
 
@@ -44,21 +44,21 @@ export class MedecinDashboardComponent implements OnInit {
       title: 'Mes rendez-vous',
       subtitle: 'Gérer mes consultations',
       icon: 'event',
-      route: '/medecin/rendez-vous',
+      route: '/dashboard/medecin/rendez-vous',
       color: 'primary'
     },
     {
       title: 'Mes horaires',
       subtitle: 'Configurer mes disponibilités',
       icon: 'schedule',
-      route: '/medecin/horaires',
+      route: '/dashboard/medecin/horaires',
       color: 'accent'
     },
     {
       title: 'Mon profil',
       subtitle: 'Mettre à jour mes informations',
       icon: 'person',
-      route: '/medecin/profil',
+      route: '/dashboard/medecin/profil',
       color: 'warn'
     }
   ];
@@ -93,7 +93,7 @@ export class MedecinDashboardComponent implements OnInit {
     // Charger les rendez-vous du médecin
     this.apiService.getMedecinRendezVous().subscribe({
       next: (response) => {
-        if (response.success && response.data.data) {
+        if (response.success && response.data?.data) {
           const rdv = response.data.data;
           
           // Prochain rendez-vous
@@ -185,7 +185,7 @@ export class MedecinDashboardComponent implements OnInit {
       case 'annule':
         return 'warn';
       default:
-        return 'default';
+        return '';
     }
   }
 

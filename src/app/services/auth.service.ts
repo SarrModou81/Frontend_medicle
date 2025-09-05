@@ -1,6 +1,7 @@
+// src/app/services/auth.service.ts - VERSION CORRIGÉE
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
@@ -19,7 +20,7 @@ export interface User {
 
 export interface AuthResponse {
   success: boolean;
-  message: string;
+  message?: string;
   user: User;
   token: string;
 }
@@ -49,6 +50,12 @@ export interface RegisterRequest {
   prix_consultation?: number;
 }
 
+export interface MeResponse {
+  success: boolean;
+  user: User;
+  data?: User; // Pour compatibilité avec ApiResponse
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -74,7 +81,6 @@ export class AuthService {
         tap(response => {
           if (response.success) {
             this.setAuthData(response.token, response.user);
-            this.redirectAfterLogin(response.user.role);
           }
         })
       );
@@ -89,7 +95,6 @@ export class AuthService {
         tap(response => {
           if (response.success) {
             this.setAuthData(response.token, response.user);
-            this.redirectAfterLogin(response.user.role);
           }
         })
       );
@@ -99,24 +104,34 @@ export class AuthService {
    * Déconnexion
    */
   logout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/logout`, {})
-      .pipe(
-        tap(() => {
-          this.clearAuthData();
-          this.router.navigate(['/login']);
-        })
-      );
+    const token = this.getToken();
+    
+    if (token) {
+      return this.http.post(`${this.apiUrl}/logout`, {})
+        .pipe(
+          tap(() => {
+            this.clearAuthData();
+          })
+        );
+    } else {
+      this.clearAuthData();
+      return of(null);
+    }
   }
 
   /**
    * Récupérer les informations utilisateur courantes
    */
-  me(): Observable<{success: boolean, user: User}> {
-    return this.http.get<{success: boolean, user: User}>(`${this.apiUrl}/me`)
+  me(): Observable<MeResponse> {
+    return this.http.get<MeResponse>(`${this.apiUrl}/me`)
       .pipe(
         tap(response => {
           if (response.success) {
-            this.setUser(response.user);
+            // Gérer les deux formats de réponse possibles
+            const user = response.user || response.data;
+            if (user) {
+              this.setUser(user);
+            }
           }
         })
       );
@@ -203,7 +218,7 @@ export class AuthService {
   /**
    * Rediriger après connexion selon le rôle
    */
-  private redirectAfterLogin(role: string): void {
+  redirectAfterLogin(role: string): void {
     switch (role) {
       case 'patient':
         this.router.navigate(['/dashboard/patient']);
@@ -224,6 +239,10 @@ export class AuthService {
    * Rafraîchir les données utilisateur
    */
   refreshUser(): void {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
     this.me().subscribe({
       next: (response) => {
         if (response.success) {

@@ -1,0 +1,24 @@
+<!-- src/app/components/shared/confirm-dialog/confirm-dialog.component.html -->
+<div class="confirm-dialog">
+  <h2 mat-dialog-title class="dialog-title" [class]="'title-' + (data.type || 'confirm')">
+    <mat-icon>{{ getIcon() }}</mat-icon>
+    {{ data.title }}
+  </h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <p>{{ data.message }}</p>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onCancel()" class="cancel-btn">
+      {{ data.cancelText || 'Annuler' }}
+    </button>
+    <button 
+      mat-raised-button 
+      [color]="getConfirmColor()"
+      (click)="onConfirm()" 
+      class="confirm-btn">
+      {{ data.confirmText || 'Confirmer' }}
+    </button>
+  </mat-dialog-actions>
+</div>

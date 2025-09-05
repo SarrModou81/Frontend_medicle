@@ -1,4 +1,4 @@
-// src/app/components/patient/patient-rendez-vous/patient-rendez-vous.component.ts
+// src/app/components/patient/patient-rendez-vous/patient-rendez-vous.component.ts - CORRIGÉ
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,8 +19,8 @@ export class PatientRendezVousComponent implements OnInit {
   
   // Filtres
   selectedStatut = '';
-  dateDebut = '';
-  dateFin = '';
+  dateDebut: Date | null = null;
+  dateFin: Date | null = null;
 
   displayedColumns: string[] = ['date', 'medecin', 'specialite', 'statut', 'paiement', 'actions'];
 
@@ -53,15 +53,15 @@ export class PatientRendezVousComponent implements OnInit {
       params.statut = this.selectedStatut;
     }
     if (this.dateDebut) {
-      params.date_debut = this.dateDebut;
+      params.date_debut = this.dateDebut.toISOString().split('T')[0];
     }
     if (this.dateFin) {
-      params.date_fin = this.dateFin;
+      params.date_fin = this.dateFin.toISOString().split('T')[0];
     }
 
     this.apiService.getPatientRendezVous(params).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.data) {
           this.rendezVous = response.data.data;
           this.currentPage = response.data.current_page;
           this.totalPages = response.data.last_page;
@@ -87,8 +87,8 @@ export class PatientRendezVousComponent implements OnInit {
 
   clearFilters(): void {
     this.selectedStatut = '';
-    this.dateDebut = '';
-    this.dateFin = '';
+    this.dateDebut = null;
+    this.dateFin = null;
     this.currentPage = 1;
     this.loadRendezVous();
   }
@@ -115,9 +115,10 @@ export class PatientRendezVousComponent implements OnInit {
       width: '400px',
       data: {
         title: 'Annuler le rendez-vous',
-        message: `Êtes-vous sûr de vouloir annuler votre rendez-vous avec Dr. ${rdv.medecin.user.nom} ${rdv.medecin.user.prenom} ?`,
+        message: `Êtes-vous sûr de vouloir annuler votre rendez-vous avec Dr. ${rdv.medecin?.user?.nom} ${rdv.medecin?.user?.prenom} ?`,
         confirmText: 'Annuler le RDV',
-        cancelText: 'Conserver'
+        cancelText: 'Conserver',
+        type: 'warning'
       }
     });
 
@@ -147,7 +148,8 @@ export class PatientRendezVousComponent implements OnInit {
 
   telechargerJustificatif(rdv: RendezVous): void {
     if (rdv.justificatif) {
-      window.open(this.apiService.telechargerJustificatif(rdv.justificatif.id), '_blank');
+      const url = this.apiService.telechargerJustificatif(rdv.justificatif.id);
+      window.open(url, '_blank');
     } else {
       this.genererJustificatif(rdv);
     }
@@ -156,14 +158,16 @@ export class PatientRendezVousComponent implements OnInit {
   genererJustificatif(rdv: RendezVous): void {
     this.apiService.genererJustificatif(rdv.id).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.data) {
           this.snackBar.open('Justificatif généré avec succès', 'Fermer', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });
           
           // Télécharger automatiquement
-          window.open(response.data.download_url, '_blank');
+          if (response.data.download_url) {
+            window.open(response.data.download_url, '_blank');
+          }
           
           // Recharger la liste pour mettre à jour le statut
           this.loadRendezVous();
@@ -188,7 +192,7 @@ export class PatientRendezVousComponent implements OnInit {
       case 'annule':
         return 'warn';
       default:
-        return 'default';
+        return '';
     }
   }
 

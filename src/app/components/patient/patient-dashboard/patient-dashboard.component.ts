@@ -1,4 +1,4 @@
-// src/app/components/patient/patient-dashboard/patient-dashboard.component.ts
+// src/app/components/patient/patient-dashboard/patient-dashboard.component.ts - CORRIGÉ
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, RendezVous, StatistiquesPatient, NotificationPatient } from '../../../services/api.service';
@@ -91,7 +91,7 @@ export class PatientDashboardComponent implements OnInit {
     // Charger le prochain rendez-vous
     this.apiService.getPatientRendezVous({ statut: 'confirme' }).subscribe({
       next: (response) => {
-        if (response.success && response.data.data.length > 0) {
+        if (response.success && response.data?.data && response.data.data.length > 0) {
           // Trouver le prochain RDV
           const rdvFuturs = response.data.data.filter(rdv => 
             new Date(rdv.date_heure) > new Date()

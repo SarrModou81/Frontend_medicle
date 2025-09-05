@@ -1,4 +1,4 @@
-// src/app/components/medecin/medecin-rendez-vous/medecin-rendez-vous.component.ts
+// src/app/components/medecin/medecin-rendez-vous/medecin-rendez-vous.component.ts - CORRIGÉ
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,7 +19,7 @@ export class MedecinRendezVousComponent implements OnInit {
   
   // Filtres
   selectedStatut = '';
-  selectedDate = '';
+  selectedDate: Date | null = null;
 
   displayedColumns: string[] = ['date', 'patient', 'motif', 'statut', 'paiement', 'actions'];
 
@@ -52,12 +52,12 @@ export class MedecinRendezVousComponent implements OnInit {
       params.statut = this.selectedStatut;
     }
     if (this.selectedDate) {
-      params.date = this.selectedDate;
+      params.date = this.selectedDate.toISOString().split('T')[0];
     }
 
     this.apiService.getMedecinRendezVous(params).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.data) {
           this.rendezVous = response.data.data;
           this.currentPage = response.data.current_page;
           this.totalPages = response.data.last_page;
@@ -83,7 +83,7 @@ export class MedecinRendezVousComponent implements OnInit {
 
   clearFilters(): void {
     this.selectedStatut = '';
-    this.selectedDate = '';
+    this.selectedDate = null;
     this.currentPage = 1;
     this.loadRendezVous();
   }
@@ -98,7 +98,7 @@ export class MedecinRendezVousComponent implements OnInit {
       width: '400px',
       data: {
         title: 'Confirmer le rendez-vous',
-        message: `Voulez-vous confirmer le rendez-vous avec ${rdv.patient.user.prenom} ${rdv.patient.user.nom} ?`,
+        message: `Voulez-vous confirmer le rendez-vous avec ${rdv.patient?.user?.prenom} ${rdv.patient?.user?.nom} ?`,
         confirmText: 'Confirmer',
         cancelText: 'Annuler'
       }
@@ -133,7 +133,7 @@ export class MedecinRendezVousComponent implements OnInit {
       width: '400px',
       data: {
         title: 'Terminer le rendez-vous',
-        message: `Marquer le rendez-vous avec ${rdv.patient.user.prenom} ${rdv.patient.user.nom} comme terminé ?`,
+        message: `Marquer le rendez-vous avec ${rdv.patient?.user?.prenom} ${rdv.patient?.user?.nom} comme terminé ?`,
         confirmText: 'Terminer',
         cancelText: 'Annuler',
         type: 'confirm'
@@ -169,7 +169,7 @@ export class MedecinRendezVousComponent implements OnInit {
       width: '400px',
       data: {
         title: 'Annuler le rendez-vous',
-        message: `Êtes-vous sûr de vouloir annuler le rendez-vous avec ${rdv.patient.user.prenom} ${rdv.patient.user.nom} ?`,
+        message: `Êtes-vous sûr de vouloir annuler le rendez-vous avec ${rdv.patient?.user?.prenom} ${rdv.patient?.user?.nom} ?`,
         confirmText: 'Annuler le RDV',
         cancelText: 'Conserver',
         type: 'warning'
@@ -226,7 +226,7 @@ export class MedecinRendezVousComponent implements OnInit {
       case 'annule':
         return 'warn';
       default:
-        return 'default';
+        return '';
     }
   }
 

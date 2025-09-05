@@ -1,3 +1,4 @@
+// src/app/app-routing.module.ts - VERSION CORRIGÉE
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -49,7 +50,7 @@ const routes: Routes = [
         children: [
           { path: '', component: PatientDashboardComponent },
           { path: 'medecins', component: MedecinListComponent },
-          { path: 'rendez-vous/nouveau/:medecinId', component: RendezVousFormComponent },
+          { path: 'rendez-vous/nouveau', component: RendezVousFormComponent },
           { path: 'rendez-vous', component: PatientRendezVousComponent },
           { path: 'paiement/:rendezVousId', component: PaiementComponent },
           { path: 'profil', component: PatientProfilComponent }

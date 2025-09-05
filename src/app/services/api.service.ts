@@ -1,4 +1,4 @@
-// src/app/services/api.service.ts
+// src/app/services/api.service.ts - VERSION CORRIGÉE
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -10,6 +10,7 @@ export interface ApiResponse<T = any> {
   message?: string;
   data?: T;
   errors?: any;
+  client_secret?: string; // Pour les paiements Stripe
 }
 
 export interface PaginatedResponse<T> {
@@ -67,6 +68,10 @@ export interface Medecin {
   valide_par_admin?: boolean;
   user?: User;
   specialite?: Specialite;
+  prochaine_disponibilite?: {
+    date: string;
+    heure: string;
+  };
 }
 
 export interface Specialite {
@@ -204,6 +209,11 @@ export interface DashboardStats {
   evolution_mensuelle: any[];
 }
 
+export interface CreneauDisponible {
+  heure: string;
+  disponible: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -270,8 +280,8 @@ export class ApiService {
     return this.http.post<ApiResponse<RendezVous>>(`${this.apiUrl}/rendez-vous/${id}/terminer`, {});
   }
 
-  getCreneauxDisponibles(medecinId: number, date: string): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/medecins/${medecinId}/creneaux?date=${date}`);
+  getCreneauxDisponibles(medecinId: number, date: string): Observable<ApiResponse<CreneauDisponible[]>> {
+    return this.http.get<ApiResponse<CreneauDisponible[]>>(`${this.apiUrl}/medecins/${medecinId}/creneaux?date=${date}`);
   }
 
   // ============= PATIENT =============

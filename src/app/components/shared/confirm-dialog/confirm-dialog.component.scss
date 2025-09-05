@@ -1,0 +1,56 @@
+/* src/app/components/shared/confirm-dialog/confirm-dialog.component.scss */
+.confirm-dialog {
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  
+  &.title-confirm {
+    color: #1976d2;
+  }
+  
+  &.title-warning {
+    color: #f57c00;
+  }
+  
+  &.title-danger {
+    color: #d32f2f;
+  }
+  
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.dialog-content {
+  margin-bottom: 24px;
+  
+  p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #666;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0;
+  
+  .cancel-btn {
+    min-width: 80px;
+  }
+  
+  .confirm-btn {
+    min-width: 100px;
+  }
+}
