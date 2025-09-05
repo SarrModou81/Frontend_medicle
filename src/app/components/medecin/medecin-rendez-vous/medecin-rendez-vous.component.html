@@ -1,0 +1,165 @@
+<!-- src/app/components/medecin/medecin-rendez-vous/medecin-rendez-vous.component.html -->
+<div class="medecin-rdv-container">
+  <div class="page-header">
+    <h1>Mes rendez-vous</h1>
+    <p>Gérez vos consultations</p>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(value)]="selectedStatut" (selectionChange)="onFilterChange()">
+            <mat-option *ngFor="let option of statutOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date</mat-label>
+          <input matInput [matDatepicker]="datePicker" [(ngModel)]="selectedDate" (dateChange)="onFilterChange()">
+          <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+          <mat-datepicker #datePicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-raised-button color="warn" (click)="clearFilters()" class="clear-btn">
+          <mat-icon>clear</mat-icon>
+          Effacer les filtres
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement de vos rendez-vous...</p>
+  </div>
+
+  <!-- Tableau des rendez-vous -->
+  <div *ngIf="!isLoading">
+    <mat-card class="table-card">
+      <mat-table [dataSource]="rendezVous" class="rdv-table">
+        
+        <!-- Colonne Date -->
+        <ng-container matColumnDef="date">
+          <mat-header-cell *matHeaderCellDef>Date & Heure</mat-header-cell>
+          <mat-cell *matCellDef="let rdv">
+            <div class="date-cell">
+              <div class="date-time">{{ formatDate(rdv.date_heure) }}</div>
+              <div class="duration">{{ rdv.duree }} min</div>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Colonne Patient -->
+        <ng-container matColumnDef="patient">
+          <mat-header-cell *matHeaderCellDef>Patient</mat-header-cell>
+          <mat-cell *matCellDef="let rdv">
+            <div class="patient-cell">
+              <div class="patient-name">{{ rdv.patient.user.prenom }} {{ rdv.patient.user.nom }}</div>
+              <div class="patient-contact" *ngIf="rdv.patient.user.telephone">{{ rdv.patient.user.telephone }}</div>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Colonne Motif -->
+        <ng-container matColumnDef="motif">
+          <mat-header-cell *matHeaderCellDef>Motif</mat-header-cell>
+          <mat-cell *matCellDef="let rdv">
+            <div class="motif-cell">
+              {{ rdv.motif || 'Non spécifié' }}
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Colonne Statut -->
+        <ng-container matColumnDef="statut">
+          <mat-header-cell *matHeaderCellDef>Statut</mat-header-cell>
+          <mat-cell *matCellDef="let rdv">
+            <mat-chip [color]="getStatutColor(rdv.statut)" selected>
+              {{ getStatutLabel(rdv.statut) }}
+            </mat-chip>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Colonne Paiement -->
+        <ng-container matColumnDef="paiement">
+          <mat-header-cell *matHeaderCellDef>Paiement</mat-header-cell>
+          <mat-cell *matCellDef="let rdv">
+            <div class="paiement-cell">
+              <div class="montant">{{ formatPrix(rdv.montant) }}</div>
+              <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" selected class="paiement-chip">
+                {{ getPaiementStatutLabel(rdv.statut_paiement) }}
+              </mat-chip>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Colonne Actions -->
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+          <mat-cell *matCellDef="let rdv">
+            <div class="actions-cell">
+              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" color="primary">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              
+              <mat-menu #actionsMenu="matMenu">
+                <button mat-menu-item (click)="confirmerRendezVous(rdv)" 
+                        [disabled]="!peutConfirmer(rdv)">
+                  <mat-icon>check</mat-icon>
+                  <span>Confirmer</span>
+                </button>
+                
+                <button mat-menu-item (click)="terminerRendezVous(rdv)" 
+                        [disabled]="!peutTerminer(rdv)">
+                  <mat-icon>done_all</mat-icon>
+                  <span>Terminer</span>
+                </button>
+                
+                <button mat-menu-item (click)="annulerRendezVous(rdv)" 
+                        [disabled]="!peutAnnuler(rdv)"
+                        color="warn">
+                  <mat-icon>cancel</mat-icon>
+                  <span>Annuler</span>
+                </button>
+              </mat-menu>
+            </div>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      </mat-table>
+    </mat-card>
+
+    <!-- Message si aucun rendez-vous -->
+    <div *ngIf="rendezVous.length === 0" class="no-rdv">
+      <mat-card class="no-rdv-card">
+        <mat-card-content>
+          <mat-icon class="no-rdv-icon">event_note</mat-icon>
+          <h3>Aucun rendez-vous trouvé</h3>
+          <p>Aucun rendez-vous ne correspond aux critères sélectionnés.</p>
+          <button mat-raised-button color="primary" [routerLink]="['/medecin/horaires']">
+            Gérer mes disponibilités
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-container">
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="15"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event.pageIndex + 1)"
+        [showFirstLastButtons]="true">
+      </mat-paginator>
+    </div>
+  </div>
+</div>
