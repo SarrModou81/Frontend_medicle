@@ -1,0 +1,132 @@
+
+<div class="patient-dashboard">
+  <div class="dashboard-header">
+    <h1>Bienvenue, {{ currentUser?.prenom }} !</h1>
+    <p class="welcome-message">Gérez vos rendez-vous médicaux en toute simplicité</p>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement de vos données...</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="dashboard-content">
+    
+    <!-- Actions rapides -->
+    <div class="quick-actions">
+      <h2>Actions rapides</h2>
+      <div class="actions-grid">
+        <mat-card 
+          *ngFor="let action of quickActions" 
+          class="action-card"
+          [class]="'action-' + action.color"
+          (click)="navigateTo(action.route)">
+          <mat-card-content>
+            <mat-icon class="action-icon">{{ action.icon }}</mat-icon>
+            <h3>{{ action.title }}</h3>
+            <p>{{ action.subtitle }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-section">
+      <h2>Mes statistiques</h2>
+      <div class="stats-grid">
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ statistiques.total_rdv || 0 }}</div>
+            <div class="stat-label">Total RDV</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ statistiques.rdv_ce_mois || 0 }}</div>
+            <div class="stat-label">Ce mois</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ (statistiques.montant_total_depense || 0) | number:'1.0-0' }} FCFA</div>
+            <div class="stat-label">Total dépensé</div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-number">{{ statistiques.specialites_consultees || 0 }}</div>
+            <div class="stat-label">Spécialités</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Prochain rendez-vous -->
+    <div class="next-appointment" *ngIf="prochainRdv">
+      <h2>Prochain rendez-vous</h2>
+      <mat-card class="appointment-card">
+        <mat-card-content>
+          <div class="appointment-info">
+            <div class="appointment-details">
+              <h3>Dr. {{ prochainRdv.medecin?.user?.nom }} {{ prochainRdv.medecin?.user?.prenom }}</h3>
+              <p class="specialite">{{ prochainRdv.medecin?.specialite?.nom }}</p>
+              <p class="date-time">
+                <mat-icon>event</mat-icon>
+                {{ prochainRdv.date_heure | date:'EEEE d MMMM yyyy à HH:mm':'fr' }}
+              </p>
+              <p class="motif" *ngIf="prochainRdv.motif">
+                <mat-icon>note</mat-icon>
+                {{ prochainRdv.motif }}
+              </p>
+            </div>
+            <div class="appointment-actions">
+              <button mat-raised-button color="primary" 
+                      [routerLink]="['/dashboard/patient/rendez-vous']">
+                Voir détails
+              </button>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notifications" *ngIf="notifications.length > 0">
+      <h2>Notifications</h2>
+      <mat-card *ngFor="let notification of notifications" class="notification-card">
+        <mat-card-content>
+          <div class="notification-content">
+            <mat-icon [class]="'notification-icon ' + notification.type">
+              {{ getNotificationIcon(notification.type) }}
+            </mat-icon>
+            <div class="notification-text">
+              <p>{{ notification.message }}</p>
+              <small *ngIf="notification.date">{{ notification.date | date:'short':'fr' }}</small>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Message si pas de prochain RDV -->
+    <div class="no-appointment" *ngIf="!prochainRdv && !isLoading">
+      <mat-card class="info-card">
+        <mat-card-content>
+          <mat-icon class="info-icon">info</mat-icon>
+          <h3>Aucun rendez-vous prévu</h3>
+          <p>Vous n'avez aucun rendez-vous confirmé pour le moment.</p>
+          <button mat-raised-button color="primary" 
+                  [routerLink]="['/dashboard/patient/medecins']">
+            Prendre un rendez-vous
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+

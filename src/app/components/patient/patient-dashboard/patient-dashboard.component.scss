@@ -1,0 +1,298 @@
+
+.patient-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+  text-align: center;
+  
+  h1 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 2.5rem;
+    font-weight: 300;
+  }
+  
+  .welcome-message {
+    color: #666;
+    font-size: 1.1rem;
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  
+  mat-spinner {
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.quick-actions {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.action-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  
+  mat-card-content {
+    text-align: center;
+    padding: 24px;
+  }
+  
+  .action-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+  
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  
+  p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  &.action-primary {
+    border-left: 4px solid #3f51b5;
+    
+    .action-icon {
+      color: #3f51b5;
+    }
+  }
+  
+  &.action-accent {
+    border-left: 4px solid #ff4081;
+    
+    .action-icon {
+      color: #ff4081;
+    }
+  }
+  
+  &.action-warn {
+    border-left: 4px solid #ff9800;
+    
+    .action-icon {
+      color: #ff9800;
+    }
+  }
+}
+
+/* Statistiques */
+.stats-section {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  text-align: center;
+  border-radius: 12px;
+  
+  mat-card-content {
+    padding: 24px;
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #3f51b5;
+    margin-bottom: 8px;
+  }
+  
+  .stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+/* Prochain rendez-vous */
+.next-appointment {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.appointment-card {
+  border-radius: 12px;
+  border-left: 4px solid #4caf50;
+  
+  .appointment-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .appointment-details {
+    flex: 1;
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 1.3rem;
+    }
+    
+    .specialite {
+      color: #666;
+      font-style: italic;
+      margin: 0 0 12px 0;
+    }
+    
+    .date-time, .motif {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+      color: #555;
+      
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+  
+  .appointment-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Notifications */
+.notifications {
+  h2 {
+    margin-bottom: 16px;
+    color: #333;
+  }
+}
+
+.notification-card {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  
+  .notification-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .notification-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    
+    &.rdv_proche {
+      color: #ff9800;
+    }
+    
+    &.paiement_attente {
+      color: #f44336;
+    }
+  }
+  
+  .notification-text {
+    flex: 1;
+    
+    p {
+      margin: 0 0 4px 0;
+      font-weight: 500;
+    }
+    
+    small {
+      color: #666;
+    }
+  }
+}
+
+/* Message d'information */
+.no-appointment {
+  .info-card {
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    
+    .info-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    
+    p {
+      margin: 0 0 24px 0;
+      color: #666;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .appointment-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .stats-grid, .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 2rem;
+  }
+}
+
+

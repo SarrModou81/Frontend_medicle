@@ -1,0 +1,29 @@
+
+<div class="sidebar-content">
+  <div class="sidebar-header">
+    <mat-icon class="sidebar-logo">local_hospital</mat-icon>
+    <h3>Menu</h3>
+  </div>
+  
+  <mat-nav-list class="nav-list">
+    <mat-list-item 
+      *ngFor="let item of filteredMenuItems"
+      [class.active]="isActive(item.route)"
+      (click)="navigate(item.route)"
+      class="nav-item">
+      <mat-icon matListIcon>{{ item.icon }}</mat-icon>
+      <span matLine>{{ item.label }}</span>
+    </mat-list-item>
+  </mat-nav-list>
+  
+  <div class="sidebar-footer">
+    <mat-divider></mat-divider>
+    <div class="user-role-badge" *ngIf="currentUser">
+      <mat-chip 
+        [class]="'role-' + currentUser.role"
+        selected>
+        {{ getRoleDisplayName() }}
+      </mat-chip>
+    </div>
+  </div>
+</div>

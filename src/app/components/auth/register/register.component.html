@@ -1,0 +1,166 @@
+
+<div class="register-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title class="text-center">
+        <h2>Inscription</h2>
+        <p class="subtitle">Plateforme de Rendez-vous Médicaux</p>
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Sélection du rôle -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Je suis</mat-label>
+          <mat-select formControlName="role">
+            <mat-option value="patient">Patient</mat-option>
+            <mat-option value="medecin">Médecin</mat-option>
+          </mat-select>
+          <mat-error>{{ getErrorMessage('role') }}</mat-error>
+        </mat-form-field>
+
+        <!-- Informations personnelles -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="nom" autocomplete="family-name">
+            <mat-error>{{ getErrorMessage('nom') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="prenom" autocomplete="given-name">
+            <mat-error>{{ getErrorMessage('prenom') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email">
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error>{{ getErrorMessage('email') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Téléphone</mat-label>
+          <input matInput formControlName="telephone" placeholder="+221 77 XXX XX XX">
+          <mat-icon matSuffix>phone</mat-icon>
+          <mat-error>{{ getErrorMessage('telephone') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Adresse</mat-label>
+          <textarea matInput formControlName="adresse" rows="2"></textarea>
+          <mat-icon matSuffix>location_on</mat-icon>
+        </mat-form-field>
+
+        <!-- Mots de passe -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Mot de passe</mat-label>
+          <input 
+            matInput 
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
+            autocomplete="new-password">
+          <button 
+            mat-icon-button 
+            matSuffix 
+            (click)="hidePassword = !hidePassword"
+            type="button">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error>{{ getErrorMessage('password') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmer le mot de passe</mat-label>
+          <input 
+            matInput 
+            [type]="hidePasswordConfirm ? 'password' : 'text'"
+            formControlName="password_confirmation"
+            autocomplete="new-password">
+          <button 
+            mat-icon-button 
+            matSuffix 
+            (click)="hidePasswordConfirm = !hidePasswordConfirm"
+            type="button">
+            <mat-icon>{{ hidePasswordConfirm ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error>{{ getErrorMessage('password_confirmation') }}</mat-error>
+        </mat-form-field>
+
+        <!-- Champs spécifiques patient -->
+        <div *ngIf="isPatient" class="role-specific-fields">
+          <h3>Informations Patient</h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Date de naissance</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="date_naissance">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error>{{ getErrorMessage('date_naissance') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Sexe</mat-label>
+              <mat-select formControlName="sexe">
+                <mat-option value="M">Masculin</mat-option>
+                <mat-option value="F">Féminin</mat-option>
+              </mat-select>
+              <mat-error>{{ getErrorMessage('sexe') }}</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Champs spécifiques médecin -->
+        <div *ngIf="isMedecin" class="role-specific-fields">
+          <h3>Informations Médecin</h3>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Spécialité</mat-label>
+            <mat-select formControlName="specialite_id">
+              <mat-option *ngFor="let specialite of specialites" [value]="specialite.id">
+                {{ specialite.nom }}
+              </mat-option>
+            </mat-select>
+            <mat-error>{{ getErrorMessage('specialite_id') }}</mat-error>
+          </mat-form-field>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Numéro d'ordre</mat-label>
+              <input matInput formControlName="numero_ordre" placeholder="SN001234">
+              <mat-error>{{ getErrorMessage('numero_ordre') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Prix consultation (FCFA)</mat-label>
+              <input matInput type="number" formControlName="prix_consultation" placeholder="25000">
+              <mat-error>{{ getErrorMessage('prix_consultation') }}</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="submit"
+          class="full-width register-button"
+          [disabled]="isLoading">
+          <mat-icon *ngIf="isLoading" class="spinner">refresh</mat-icon>
+          {{ isLoading ? 'Inscription...' : 'S\'inscrire' }}
+        </button>
+      </form>
+    </mat-card-content>
+    
+    <mat-card-actions class="text-center">
+      <p>
+        Déjà un compte ? 
+        <a routerLink="/login" class="login-link">Se connecter</a>
+      </p>
+    </mat-card-actions>
+  </mat-card>
+</div>

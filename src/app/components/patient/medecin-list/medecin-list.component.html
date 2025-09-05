@@ -1,0 +1,161 @@
+
+<div class="medecin-list-container">
+  <div class="page-header">
+    <h1>Rechercher un médecin</h1>
+    <p>Trouvez le professionnel de santé qui correspond à vos besoins</p>
+  </div>
+
+  <!-- Filtres de recherche -->
+  <mat-card class="search-card">
+    <mat-card-content>
+      <form [formGroup]="searchForm" class="search-form">
+        <div class="search-row">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Rechercher par nom</mat-label>
+            <input matInput formControlName="search" placeholder="Dr. Nom du médecin">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Spécialité</mat-label>
+            <mat-select formControlName="specialite_id">
+              <mat-option value="">Toutes les spécialités</mat-option>
+              <mat-option *ngFor="let specialite of specialites" [value]="specialite.id">
+                {{ specialite.nom }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Ville</mat-label>
+            <input matInput formControlName="ville" placeholder="Dakar, Thiès...">
+            <mat-icon matSuffix>location_on</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Trier par prix</mat-label>
+            <mat-select formControlName="tri_prix">
+              <mat-option value="">Aucun tri</mat-option>
+              <mat-option value="asc">Prix croissant</mat-option>
+              <mat-option value="desc">Prix décroissant</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-raised-button color="warn" type="button" (click)="clearFilters()" class="clear-btn">
+            <mat-icon>clear</mat-icon>
+            Effacer
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Indicateur de chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Chargement des médecins...</p>
+  </div>
+
+  <!-- Résultats de recherche -->
+  <div *ngIf="!isLoading" class="results-container">
+    <!-- En-tête des résultats -->
+    <div class="results-header">
+      <div class="results-info">
+        <span class="results-count">{{ totalItems }} médecin(s) trouvé(s)</span>
+        <mat-spinner *ngIf="isSearching" diameter="20" class="search-spinner"></mat-spinner>
+      </div>
+    </div>
+
+    <!-- Liste des médecins -->
+    <div class="medecins-grid" *ngIf="medecins.length > 0">
+      <mat-card *ngFor="let medecin of medecins" class="medecin-card">
+        <mat-card-content>
+          <div class="medecin-header">
+            <div class="medecin-avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="medecin-info">
+              <h3>Dr. {{ medecin.user.nom }} {{ medecin.user.prenom }}</h3>
+              <p class="specialite">{{ medecin.specialite.nom }}</p>
+              <p class="experience">{{ formatExperience(medecin.experience_annees) }}</p>
+            </div>
+            <div class="medecin-status">
+              <mat-chip [selected]="medecin.disponible" 
+                       [class]="medecin.disponible ? 'status-available' : 'status-unavailable'">
+                {{ medecin.disponible ? 'Disponible' : 'Non disponible' }}
+              </mat-chip>
+            </div>
+          </div>
+
+          <div class="medecin-details" *ngIf="medecin.presentation">
+            <p class="presentation">{{ medecin.presentation }}</p>
+          </div>
+
+          <div class="medecin-location" *ngIf="medecin.cabinet_nom || medecin.cabinet_adresse">
+            <mat-icon>location_on</mat-icon>
+            <div>
+              <p *ngIf="medecin.cabinet_nom" class="cabinet-nom">{{ medecin.cabinet_nom }}</p>
+              <p *ngIf="medecin.cabinet_adresse" class="cabinet-adresse">{{ medecin.cabinet_adresse }}</p>
+            </div>
+          </div>
+
+          <div class="medecin-pricing">
+            <div class="price-info">
+              <span class="price">{{ formatPrix(medecin.prix_consultation) }}</span>
+              <span class="duration">{{ medecin.duree_consultation }} min</span>
+            </div>
+            <div class="payment-methods">
+              <mat-chip *ngIf="medecin.accepte_paiement_ligne" class="payment-chip">
+                <mat-icon>credit_card</mat-icon>
+                Paiement en ligne
+              </mat-chip>
+              <mat-chip class="payment-chip">
+                <mat-icon>payment</mat-icon>
+                Au cabinet
+              </mat-chip>
+            </div>
+          </div>
+
+          <div class="prochaine-dispo" *ngIf="medecin.prochaine_disponibilite">
+            <mat-icon>schedule</mat-icon>
+            <span>Prochaine disponibilité : {{ medecin.prochaine_disponibilite.date }} à {{ medecin.prochaine_disponibilite.heure }}</span>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-raised-button color="primary" 
+                  [disabled]="!medecin.disponible"
+                  (click)="voirDetails(medecin)">
+            <mat-icon>event</mat-icon>
+            Prendre rendez-vous
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Message si aucun résultat -->
+    <div *ngIf="medecins.length === 0 && !isSearching" class="no-results">
+      <mat-card class="no-results-card">
+        <mat-card-content>
+          <mat-icon class="no-results-icon">search_off</mat-icon>
+          <h3>Aucun médecin trouvé</h3>
+          <p>Aucun médecin ne correspond à vos critères de recherche.</p>
+          <button mat-raised-button color="primary" (click)="clearFilters()">
+            Effacer les filtres
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="pagination-container">
+      <mat-paginator 
+        [length]="totalItems"
+        [pageSize]="12"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event.pageIndex + 1)"
+        [showFirstLastButtons]="true">
+      </mat-paginator>
+    </div>
+  </div>
+</div>

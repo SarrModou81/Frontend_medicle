@@ -1,0 +1,326 @@
+
+.rdv-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  
+  .back-button {
+    background-color: #f5f5f5;
+  }
+  
+  .header-content {
+    h1 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 2rem;
+    }
+    
+    p {
+      margin: 0;
+      color: #666;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.medecin-info-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  
+  .medecin-summary {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    
+    .medecin-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #e3f2fd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      mat-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: #1976d2;
+      }
+    }
+    
+    .medecin-details {
+      flex: 1;
+      
+      h3 {
+        margin: 0 0 4px 0;
+        font-size: 1.4rem;
+        color: #333;
+      }
+      
+      .specialite {
+        margin: 0 0 4px 0;
+        color: #666;
+        font-style: italic;
+      }
+      
+      .experience {
+        margin: 0 0 8px 0;
+        color: #888;
+        font-size: 0.9rem;
+      }
+      
+      .cabinet-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #666;
+        font-size: 0.9rem;
+        
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+    
+    .consultation-info {
+      text-align: right;
+      
+      .price {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #3f51b5;
+        margin-bottom: 4px;
+      }
+      
+      .duration {
+        color: #666;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+.rdv-form-card {
+  border-radius: 12px;
+  
+  .form-section {
+    margin-bottom: 32px;
+    
+    h4 {
+      margin: 0 0 16px 0;
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+}
+
+.loading-slots {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: #666;
+}
+
+.no-slots {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    color: #ccc;
+  }
+  
+  p {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+  }
+  
+  small {
+    color: #999;
+  }
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  
+  .time-slot {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: #3f51b5;
+    }
+    
+    &.mat-radio-checked {
+      background-color: #e3f2fd;
+      border-color: #3f51b5;
+    }
+  }
+}
+
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  .payment-option {
+    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    
+    &:hover:not(.mat-radio-disabled) {
+      border-color: #3f51b5;
+    }
+    
+    &.mat-radio-checked {
+      background-color: #e3f2fd;
+      border-color: #3f51b5;
+    }
+    
+    &.mat-radio-disabled {
+      opacity: 0.6;
+    }
+    
+    .payment-content {
+      .payment-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+        
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+        
+        span {
+          font-weight: 500;
+        }
+        
+        .disabled-chip {
+          margin-left: auto;
+          background-color: #f5f5f5;
+          color: #999;
+        }
+      }
+      
+      small {
+        color: #666;
+      }
+    }
+  }
+}
+
+.summary-section {
+  .summary-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      &.price-item {
+        font-weight: 600;
+        color: #3f51b5;
+      }
+      
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #666;
+      }
+      
+      span {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  
+  button:last-child {
+    min-width: 200px;
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  
+  mat-spinner {
+    margin: 0 auto 20px;
+  }
+  
+  p {
+    color: #666;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .medecin-summary {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .time-slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+}

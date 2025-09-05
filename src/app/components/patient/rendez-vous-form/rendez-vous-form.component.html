@@ -1,0 +1,194 @@
+
+<div class="rdv-form-container" *ngIf="!isLoading">
+  <div class="form-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-content">
+      <h1>Prendre un rendez-vous</h1>
+      <p>Réservez votre consultation avec Dr. {{ medecin?.user.nom }} {{ medecin?.user.prenom }}</p>
+    </div>
+  </div>
+
+  <!-- Informations du médecin -->
+  <mat-card class="medecin-info-card">
+    <mat-card-content>
+      <div class="medecin-summary">
+        <div class="medecin-avatar">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="medecin-details">
+          <h3>Dr. {{ medecin?.user.nom }} {{ medecin?.user.prenom }}</h3>
+          <p class="specialite">{{ medecin?.specialite.nom }}</p>
+          <p class="experience">{{ medecin?.experience_annees }} ans d'expérience</p>
+          <div class="cabinet-info" *ngIf="medecin?.cabinet_nom">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ medecin?.cabinet_nom }}</span>
+          </div>
+        </div>
+        <div class="consultation-info">
+          <div class="price">{{ formatPrix(medecin?.prix_consultation || 0) }}</div>
+          <div class="duration">{{ medecin?.duree_consultation }} minutes</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Formulaire de rendez-vous -->
+  <mat-card class="rdv-form-card">
+    <mat-card-header>
+      <mat-card-title>Détails du rendez-vous</mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="rdvForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Sélection de la date -->
+        <div class="form-section">
+          <h4>Choisir une date</h4>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date de consultation</mat-label>
+            <input matInput 
+                   [matDatepicker]="picker"
+                   formControlName="date"
+                   [min]="minDate"
+                   [max]="maxDate"
+                   [matDatepickerFilter]="dateFilter"
+                   readonly>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error>{{ getErrorMessage('date') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Sélection de l'heure -->
+        <div class="form-section" *ngIf="selectedDate">
+          <h4>Choisir un créneau horaire</h4>
+          
+          <div *ngIf="isLoadingSlots" class="loading-slots">
+            <mat-spinner diameter="30"></mat-spinner>
+            <span>Chargement des créneaux...</span>
+          </div>
+          
+          <div *ngIf="!isLoadingSlots && availableSlots.length === 0" class="no-slots">
+            <mat-icon>event_busy</mat-icon>
+            <p>Aucun créneau disponible pour cette date</p>
+            <small>Veuillez choisir une autre date</small>
+          </div>
+          
+          <div *ngIf="!isLoadingSlots && availableSlots.length > 0" class="time-slots">
+            <mat-radio-group formControlName="heure" class="time-slots-grid">
+              <mat-radio-button 
+                *ngFor="let slot of availableSlots"
+                [value]="slot.heure"
+                class="time-slot">
+                {{ slot.heure }}
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+          
+          <mat-error *ngIf="rdvForm.get('heure')?.invalid && rdvForm.get('heure')?.touched">
+            {{ getErrorMessage('heure') }}
+          </mat-error>
+        </div>
+
+        <!-- Motif de consultation -->
+        <div class="form-section">
+          <h4>Motif de consultation (optionnel)</h4>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Décrivez brièvement le motif de votre consultation</mat-label>
+            <textarea matInput 
+                      formControlName="motif"
+                      rows="3"
+                      maxlength="500"
+                      placeholder="Ex: Consultation de routine, douleurs abdominales, contrôle..."></textarea>
+            <mat-hint align="end">{{ rdvForm.get('motif')?.value?.length || 0 }}/500</mat-hint>
+            <mat-error>{{ getErrorMessage('motif') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Mode de paiement -->
+        <div class="form-section">
+          <h4>Mode de paiement</h4>
+          <mat-radio-group formControlName="type_paiement" class="payment-options">
+            <mat-radio-button value="au_cabinet" class="payment-option">
+              <div class="payment-content">
+                <div class="payment-header">
+                  <mat-icon>payment</mat-icon>
+                  <span>Paiement au cabinet</span>
+                </div>
+                <small>Vous paierez directement lors de votre consultation</small>
+              </div>
+            </mat-radio-button>
+            
+            <mat-radio-button 
+              value="en_ligne" 
+              class="payment-option"
+              [disabled]="!medecin?.accepte_paiement_ligne">
+              <div class="payment-content">
+                <div class="payment-header">
+                  <mat-icon>credit_card</mat-icon>
+                  <span>Paiement en ligne</span>
+                  <mat-chip *ngIf="!medecin?.accepte_paiement_ligne" class="disabled-chip">
+                    Non disponible
+                  </mat-chip>
+                </div>
+                <small>Paiement sécurisé par carte bancaire</small>
+              </div>
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <!-- Résumé -->
+        <div class="form-section summary-section" *ngIf="rdvForm.get('date')?.value && rdvForm.get('heure')?.value">
+          <h4>Résumé de votre rendez-vous</h4>
+          <div class="summary-card">
+            <div class="summary-item">
+              <mat-icon>event</mat-icon>
+              <span>{{ rdvForm.get('date')?.value | date:'EEEE d MMMM yyyy':'fr' }} à {{ rdvForm.get('heure')?.value }}</span>
+            </div>
+            <div class="summary-item">
+              <mat-icon>person</mat-icon>
+              <span>Dr. {{ medecin?.user.nom }} {{ medecin?.user.prenom }}</span>
+            </div>
+            <div class="summary-item">
+              <mat-icon>medical_services</mat-icon>
+              <span>{{ medecin?.specialite.nom }}</span>
+            </div>
+            <div class="summary-item">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ medecin?.duree_consultation }} minutes</span>
+            </div>
+            <div class="summary-item price-item">
+              <mat-icon>attach_money</mat-icon>
+              <span>{{ formatPrix(medecin?.prix_consultation || 0) }}</span>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="form-actions">
+      <button mat-button type="button" (click)="goBack()">
+        Annuler
+      </button>
+      <button mat-raised-button 
+              color="primary" 
+              type="submit"
+              [disabled]="!rdvForm.valid || isSubmitting"
+              (click)="onSubmit()">
+        <mat-icon *ngIf="isSubmitting" class="spinner">refresh</mat-icon>
+        {{ isSubmitting ? 'Création...' : 'Confirmer le rendez-vous' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<!-- Chargement initial -->
+<div *ngIf="isLoading" class="loading-container">
+  <mat-spinner></mat-spinner>
+  <p>Chargement des informations du médecin...</p>
+</div>
+
+
