@@ -331,3 +331,276 @@
     opacity: 1;
   }
 }
+/* Ajouts CSS pour patient-rendez-vous.component.scss */
+
+// =============== PAIEMENT ENHANCEMENTS ===============
+.paiement-cell {
+  .montant {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+  }
+  
+  .paiement-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    
+    .paiement-type-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: #666;
+      
+      &[ng-reflect-message*="cabinet"] {
+        color: #ff9800;
+      }
+      
+      &[ng-reflect-message*="ligne"] {
+        color: #2196f3;
+      }
+    }
+  }
+  
+  .paiement-chip {
+    font-size: 0.8rem;
+    
+    &.mat-chip-selected {
+      &.mat-success {
+        background-color: #e8f5e8 !important;
+        color: #2e7d32 !important;
+      }
+      
+      &.mat-warn {
+        background-color: #fff3e0 !important;
+        color: #f57c00 !important;
+      }
+      
+      &.mat-accent {
+        background-color: #fce4ec !important;
+        color: #c2185b !important;
+      }
+    }
+  }
+  
+  .btn-payer {
+    margin-top: 8px;
+    background-color: #4caf50;
+    color: white;
+    
+    &:hover {
+      background-color: #45a049;
+    }
+    
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
+}
+
+// =============== VERSION MOBILE ENHANCEMENTS ===============
+.rdv-mobile-card {
+  .paiement-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+    
+    .montant {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #333;
+    }
+    
+    .paiement-details {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      .paiement-type-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        
+        &[ng-reflect-message*="cabinet"] {
+          color: #ff9800;
+        }
+        
+        &[ng-reflect-message*="ligne"] {
+          color: #2196f3;
+        }
+      }
+    }
+    
+    .paiement-alert {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background-color: #fff3cd;
+      border-radius: 6px;
+      border-left: 3px solid #ffc107;
+      font-size: 0.9rem;
+      color: #856404;
+      
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #ffc107;
+      }
+    }
+  }
+  
+  mat-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid #e0e0e0;
+    
+    button {
+      width: 100%;
+      
+      &[color="primary"] {
+        background-color: #4caf50;
+        color: white;
+        
+        &:hover {
+          background-color: #45a049;
+        }
+      }
+      
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// =============== STATUS INDICATORS ===============
+.paiement-status {
+  &.au-cabinet {
+    .status-indicator {
+      background-color: #fff3e0;
+      color: #f57c00;
+      border-left: 3px solid #ff9800;
+    }
+  }
+  
+  &.en-ligne {
+    .status-indicator {
+      background-color: #e3f2fd;
+      color: #1976d2;
+      border-left: 3px solid #2196f3;
+    }
+  }
+  
+  &.paye {
+    .status-indicator {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+      border-left: 3px solid #4caf50;
+    }
+  }
+}
+
+// =============== TOOLTIPS ===============
+.mat-tooltip {
+  font-size: 12px;
+  max-width: 250px;
+  text-align: center;
+}
+
+// =============== ENHANCED CHIPS ===============
+.mat-chip {
+  &.paiement-au-cabinet {
+    background-color: #fff3e0 !important;
+    color: #f57c00 !important;
+    
+    &::before {
+      content: '💰';
+      margin-right: 4px;
+    }
+  }
+  
+  &.paiement-en-ligne {
+    background-color: #e3f2fd !important;
+    color: #1976d2 !important;
+    
+    &::before {
+      content: '💳';
+      margin-right: 4px;
+    }
+  }
+  
+  &.paiement-paye {
+    background-color: #e8f5e8 !important;
+    color: #2e7d32 !important;
+    
+    &::before {
+      content: '✅';
+      margin-right: 4px;
+    }
+  }
+}
+
+// =============== ANIMATION ENHANCEMENTS ===============
+.paiement-alert {
+  animation: slideInAlert 0.3s ease-out;
+}
+
+@keyframes slideInAlert {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.btn-payer {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  }
+}
+
+// =============== RESPONSIVE ENHANCEMENTS ===============
+@media (max-width: 768px) {
+  .paiement-cell {
+    .paiement-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .btn-payer {
+      width: 100%;
+      margin-top: 8px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .rdv-mobile-card {
+    .paiement-info {
+      .paiement-details {
+        flex-wrap: wrap;
+      }
+    }
+    
+    mat-card-actions {
+      button {
+        font-size: 0.9rem;
+        height: 40px;
+      }
+    }
+  }
+}

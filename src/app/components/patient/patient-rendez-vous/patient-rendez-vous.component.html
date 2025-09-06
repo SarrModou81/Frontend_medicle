@@ -68,7 +68,6 @@
             <mat-header-cell *matHeaderCellDef>Médecin</mat-header-cell>
             <mat-cell *matCellDef="let rdv">
               <div class="medecin-cell">
-                <!-- CORRECTION: Gestion des valeurs undefined -->
                 <div class="medecin-name">Dr. {{ rdv.medecin?.user?.nom || 'N/A' }} {{ rdv.medecin?.user?.prenom || '' }}</div>
                 <div class="cabinet-info" *ngIf="rdv.medecin?.cabinet_nom">{{ rdv.medecin.cabinet_nom }}</div>
               </div>
@@ -79,7 +78,6 @@
           <ng-container matColumnDef="specialite">
             <mat-header-cell *matHeaderCellDef>Spécialité</mat-header-cell>
             <mat-cell *matCellDef="let rdv">
-              <!-- CORRECTION: Gestion des valeurs undefined -->
               <mat-chip class="specialite-chip">{{ rdv.medecin?.specialite?.nom || 'Non précisée' }}</mat-chip>
             </mat-cell>
           </ng-container>
@@ -100,9 +98,30 @@
             <mat-cell *matCellDef="let rdv">
               <div class="paiement-cell">
                 <div class="montant">{{ formatPrix(rdv.montant) }}</div>
-                <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" selected class="paiement-chip">
-                  {{ getPaiementStatutLabel(rdv.statut_paiement) }}
-                </mat-chip>
+                
+                <!-- Information sur le type de paiement -->
+                <div class="paiement-info">
+                  <mat-icon class="paiement-type-icon" [matTooltip]="getPaiementTooltip(rdv)">
+                    {{ getPaiementIcon(rdv.type_paiement) }}
+                  </mat-icon>
+                  
+                  <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" 
+                            selected 
+                            class="paiement-chip"
+                            [matTooltip]="getPaiementTooltip(rdv)">
+                    {{ getPaiementStatutLabel(rdv.statut_paiement, rdv.type_paiement) }}
+                  </mat-chip>
+                </div>
+                
+                <!-- Bouton Payer si paiement en ligne requis -->
+                <button mat-button 
+                        *ngIf="isPaiementRequis(rdv)"
+                        color="primary"
+                        class="btn-payer"
+                        (click)="procederAuPaiement(rdv)">
+                  <mat-icon>credit_card</mat-icon>
+                  Payer
+                </button>
               </div>
             </mat-cell>
           </ng-container>
@@ -156,17 +175,33 @@
 
           <div class="rdv-mobile-content">
             <div class="medecin-info">
-              <!-- CORRECTION: Gestion des valeurs undefined -->
               <h3>Dr. {{ rdv.medecin?.user?.nom || 'N/A' }} {{ rdv.medecin?.user?.prenom || '' }}</h3>
               <p class="specialite">{{ rdv.medecin?.specialite?.nom || 'Non précisée' }}</p>
               <p class="cabinet" *ngIf="rdv.medecin?.cabinet_nom">{{ rdv.medecin?.cabinet_nom }}</p>
             </div>
 
+            <!-- Version Mobile - Paiement Info -->
             <div class="paiement-info">
               <div class="montant">{{ formatPrix(rdv.montant) }}</div>
-              <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" selected class="paiement-chip">
-                {{ getPaiementStatutLabel(rdv.statut_paiement) }}
-              </mat-chip>
+              
+              <div class="paiement-details">
+                <mat-icon class="paiement-type-icon" [matTooltip]="getPaiementTooltip(rdv)">
+                  {{ getPaiementIcon(rdv.type_paiement) }}
+                </mat-icon>
+                
+                <mat-chip [color]="getPaiementStatutColor(rdv.statut_paiement)" 
+                          selected 
+                          class="paiement-chip"
+                          [matTooltip]="getPaiementTooltip(rdv)">
+                  {{ getPaiementStatutLabel(rdv.statut_paiement, rdv.type_paiement) }}
+                </mat-chip>
+              </div>
+              
+              <!-- Alerte pour paiement requis -->
+              <div class="paiement-alert" *ngIf="isPaiementRequis(rdv)">
+                <mat-icon>warning</mat-icon>
+                <span>Paiement requis avant consultation</span>
+              </div>
             </div>
 
             <div class="motif" *ngIf="rdv.motif">
@@ -176,14 +211,28 @@
           </div>
         </mat-card-content>
 
+        <!-- Actions mises à jour pour mobile -->
         <mat-card-actions>
-          <button mat-button (click)="telechargerJustificatif(rdv)" 
+          <!-- Bouton Payer si nécessaire -->
+          <button mat-raised-button 
+                  *ngIf="isPaiementRequis(rdv)"
+                  color="primary"
+                  (click)="procederAuPaiement(rdv)">
+            <mat-icon>credit_card</mat-icon>
+            Payer maintenant
+          </button>
+          
+          <!-- Justificatif -->
+          <button mat-button 
+                  (click)="telechargerJustificatif(rdv)" 
                   [disabled]="rdv.statut !== 'termine' && rdv.statut !== 'confirme'">
             <mat-icon>description</mat-icon>
             {{ rdv.justificatif ? 'Télécharger' : 'Générer' }} justificatif
           </button>
           
-          <button mat-button (click)="annulerRendezVous(rdv)" 
+          <!-- Annuler -->
+          <button mat-button 
+                  (click)="annulerRendezVous(rdv)" 
                   [disabled]="!peutAnnuler(rdv)"
                   color="warn">
             <mat-icon>cancel</mat-icon>
