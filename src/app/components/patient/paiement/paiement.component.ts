@@ -1,4 +1,4 @@
-// src/app/components/patient/paiement/paiement.component.ts - VERSION CORRIGÉE AVEC CONFIRMATION AUTO
+// src/app/components/patient/paiement/paiement.component.ts - VERSION OPTIMISÉE
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -20,52 +20,50 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
   // Stripe
   card: any = null;
   cardMounted = false;
+  stripeError: string = '';
   
-  // Paramètres
+  // Simplification des états
   rdvId: number = 0;
-  clientSecret: string = '';
-  paiementId: number = 0; // AJOUT : ID du paiement créé
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private apiService: ApiService,
-    public stripeService: StripeService,
+    private stripeService: StripeService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    console.log('🔄 Initialisation du composant paiement');
+    console.log('💳 Initialisation paiement optimisée');
     
     const rdvIdParam = this.route.snapshot.paramMap.get('rendezVousId') || this.route.snapshot.paramMap.get('id');
     this.rdvId = Number(rdvIdParam);
     
     if (!this.rdvId || isNaN(this.rdvId)) {
-      this.snackBar.open('Identifiant de rendez-vous invalide', 'Fermer', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
+      this.showError('Identifiant de rendez-vous invalide');
       this.router.navigate(['/dashboard/patient/rendez-vous']);
       return;
     }
 
     this.initializeForm();
-    this.loadRendezVous();
-    this.initializeStripe();
+    this.loadData();
   }
 
   ngAfterViewInit(): void {
+    // Délai réduit pour l'initialisation Stripe
     setTimeout(() => {
-      if (this.stripeService.isLoaded() && !this.cardMounted) {
-        this.mountCardElement();
-      }
+      this.initializeStripe();
     }, 100);
   }
 
   ngOnDestroy(): void {
     if (this.card) {
-      this.card.destroy();
+      try {
+        this.card.destroy();
+      } catch (error) {
+        console.log('Card déjà détruit');
+      }
     }
   }
 
@@ -76,251 +74,186 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  private loadRendezVous(): void {
-    console.log('📋 Chargement du rendez-vous:', this.rdvId);
-    
-    this.apiService.getRendezVous(this.rdvId).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.rendezVous = response.data;
-          
-          if (this.rendezVous.statut_paiement === 'paye') {
-            this.snackBar.open('Ce rendez-vous a déjà été payé', 'Fermer', {
-              duration: 3000,
-              panelClass: ['warning-snackbar']
-            });
-            this.router.navigate(['/dashboard/patient/rendez-vous']);
-            return;
-          }
-          
-          console.log('✅ Rendez-vous chargé:', this.rendezVous);
-          this.isLoading = false;
-        } else {
-          this.handleError('Rendez-vous non trouvé');
+  /**
+   * Chargement optimisé des données
+   */
+  private async loadData(): Promise<void> {
+    try {
+      const response = await this.apiService.getRendezVous(this.rdvId).toPromise();
+      
+      if (response?.success && response.data) {
+        this.rendezVous = response.data;
+        
+        if (this.rendezVous.statut_paiement === 'paye') {
+          this.showError('Ce rendez-vous a déjà été payé');
+          this.router.navigate(['/dashboard/patient/rendez-vous']);
+          return;
         }
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement RDV:', error);
-        this.handleError('Erreur lors du chargement du rendez-vous');
+        
+        console.log('✅ Rendez-vous chargé');
+      } else {
+        throw new Error('Rendez-vous non trouvé');
       }
-    });
+    } catch (error) {
+      console.error('❌ Erreur chargement RDV:', error);
+      this.showError('Erreur lors du chargement du rendez-vous');
+      this.router.navigate(['/dashboard/patient/rendez-vous']);
+    } finally {
+      this.isLoading = false;
+    }
   }
 
-  private async initializeStripe(): Promise<void> {
-    console.log('💳 Initialisation de Stripe...');
-    
+  /**
+   * Initialisation Stripe optimisée
+   */
+   async initializeStripe(): Promise<void> {
     try {
+      console.log('💳 Chargement Stripe...');
+      
       await this.stripeService.loadStripe();
-      console.log('✅ Stripe chargé avec succès');
       
       if (document.getElementById('card-element')) {
-        this.mountCardElement();
+        this.mountCard();
+      } else {
+        // Réessayer après un court délai
+        setTimeout(() => {
+          if (document.getElementById('card-element')) {
+            this.mountCard();
+          }
+        }, 500);
       }
     } catch (error) {
-      console.error('❌ Erreur initialisation Stripe:', error);
-      this.snackBar.open('Erreur lors de l\'initialisation du paiement', 'Fermer', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      console.error('❌ Erreur Stripe:', error);
+      this.stripeError = 'Impossible de charger le système de paiement';
+      this.showError('Erreur lors de l\'initialisation du paiement');
     }
   }
 
-  private mountCardElement(): void {
-    if (this.cardMounted || !this.stripeService.isLoaded()) {
-      return;
-    }
-
-    console.log('🔧 Montage de l\'élément carte...');
-
+  /**
+   * Montage de la carte simplifié
+   */
+  private mountCard(): void {
     try {
+      if (this.cardMounted) return;
+      
       this.card = this.stripeService.createCardElement();
+      this.card.mount('#card-element');
+      this.cardMounted = true;
+      
+      console.log('✅ Carte montée rapidement');
 
-      const cardElement = document.getElementById('card-element');
-      if (cardElement) {
-        this.card.mount('#card-element');
-        this.cardMounted = true;
-        console.log('✅ Élément carte monté');
-
-        this.card.on('change', ({ error }: any) => {
-          const displayError = document.getElementById('card-errors');
-          if (displayError) {
-            if (error) {
-              displayError.textContent = this.stripeService.translateError(error.message);
-            } else {
-              displayError.textContent = '';
-            }
+      // Gestion des erreurs en temps réel
+      this.card.on('change', (event: any) => {
+        const displayError = document.getElementById('card-errors');
+        if (displayError) {
+          if (event.error) {
+            displayError.textContent = this.stripeService.translateError(event.error.message);
+            this.stripeError = event.error.message;
+          } else {
+            displayError.textContent = '';
+            this.stripeError = '';
           }
-        });
-      } else {
-        console.error('❌ Élément #card-element non trouvé');
-      }
+        }
+      });
+      
     } catch (error) {
       console.error('❌ Erreur montage carte:', error);
-      this.snackBar.open('Erreur lors de l\'initialisation de la carte', 'Fermer', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      this.stripeError = 'Erreur lors du montage de la carte';
     }
   }
 
-  onSubmit(): void {
+  /**
+   * Soumission optimisée
+   */
+  async onSubmit(): Promise<void> {
     if (!this.paiementForm.valid || !this.rendezVous || this.isProcessing) {
       this.markFormGroupTouched();
       return;
     }
 
     if (!this.stripeService.isLoaded() || !this.card || !this.cardMounted) {
-      this.snackBar.open('Système de paiement non initialisé. Veuillez rafraîchir la page.', 'Fermer', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      this.showError('Système de paiement non prêt. Veuillez rafraîchir la page.');
       return;
     }
 
-    console.log('💰 Début du processus de paiement');
+    console.log('💰 Début paiement optimisé');
     this.isProcessing = true;
 
-    // Créer le PaymentIntent
-    this.apiService.creerPaiement({
-      rendez_vous_id: this.rdvId,
-      methode: 'stripe'
-    }).subscribe({
-      next: (response) => {
-        if (response.success && response.client_secret) {
-          this.clientSecret = response.client_secret;
-          this.paiementId = response.paiement_id; // AJOUT : Stocker l'ID du paiement
-          console.log('✅ PaymentIntent créé');
-          this.confirmerPaiement();
-        } else {
-          this.isProcessing = false;
-          this.snackBar.open('Erreur lors de la création du paiement', 'Fermer', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-        }
-      },
-      error: (error) => {
-        this.isProcessing = false;
-        console.error('❌ Erreur création paiement:', error);
-        const errorMessage = error.error?.message || 'Erreur lors de la création du paiement';
-        this.snackBar.open(errorMessage, 'Fermer', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-      }
-    });
-  }
-
-  private async confirmerPaiement(): Promise<void> {
-    if (!this.clientSecret || !this.card) {
-      this.isProcessing = false;
-      return;
-    }
-
-    console.log('🔐 Confirmation du paiement...');
-
     try {
+      // 1. Créer le paiement
+      const paiementResponse = await this.apiService.creerPaiement({
+        rendez_vous_id: this.rdvId,
+        methode: 'stripe'
+      }).toPromise();
+
+      if (!paiementResponse?.success || !paiementResponse.client_secret) {
+        throw new Error('Erreur lors de la création du paiement');
+      }
+
+      console.log('✅ Paiement créé');
+
+      // 2. Confirmer avec Stripe
       const billingDetails = {
         name: this.getPatientName(),
         email: this.rendezVous?.patient?.user?.email || ''
       };
 
       const result = await this.stripeService.confirmCardPayment(
-        this.clientSecret,
+        paiementResponse.client_secret,
         this.card,
         billingDetails
       );
-      
+
       if (result.error) {
-        // GESTION D'ERREUR AMÉLIORÉE
-        this.isProcessing = false;
-        console.error('❌ Erreur paiement:', result.error);
-        
-        let errorMessage = 'Erreur de paiement';
-        
-        if (result.error.type === 'card_error') {
-          if (result.error.code === 'card_declined') {
-            errorMessage = 'Carte refusée. Vérifiez vos informations ou utilisez une autre carte.';
-          } else if (result.error.code === 'expired_card') {
-            errorMessage = 'Votre carte a expiré.';
-          } else if (result.error.code === 'insufficient_funds') {
-            errorMessage = 'Fonds insuffisants sur votre carte.';
-          } else if (result.error.code === 'incorrect_cvc') {
-            errorMessage = 'Code de sécurité incorrect.';
-          } else {
-            errorMessage = this.stripeService.translateError(result.error.message);
-          }
-        }
-        
-        this.snackBar.open(errorMessage, 'Fermer', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-      } else {
-        // PAIEMENT RÉUSSI CÔTÉ STRIPE - MAINTENANT CONFIRMER CÔTÉ SERVEUR
-        console.log('✅ Paiement réussi côté Stripe:', result.paymentIntent);
-        
-        this.confirmerPaiementCoteServeur();
+        throw new Error(this.stripeService.translateError(result.error.message));
       }
-    } catch (error) {
+
+      console.log('✅ Paiement confirmé côté Stripe');
+
+      // 3. Confirmer côté serveur
+      if (paiementResponse.paiement_id) {
+        await this.confirmerCoteServeur(paiementResponse.paiement_id);
+      } else {
+        throw new Error('ID de paiement manquant');
+      }
+
+    } catch (error: any) {
       this.isProcessing = false;
-      console.error('❌ Erreur confirmation paiement:', error);
-      this.snackBar.open('Erreur inattendue lors du paiement', 'Fermer', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      console.error('❌ Erreur paiement:', error);
+      this.showError(error.message || 'Erreur lors du paiement');
     }
   }
 
-  // NOUVELLE MÉTHODE : Confirmer le paiement côté serveur après succès Stripe
-  private confirmerPaiementCoteServeur(): void {
-    console.log('📡 Confirmation côté serveur...');
-    
-    this.apiService.confirmerPaiement(this.paiementId).subscribe({
-      next: (response) => {
-        this.isProcessing = false;
+  /**
+   * Confirmation côté serveur optimisée
+   */
+  private async confirmerCoteServeur(paiementId: number): Promise<void> {
+    try {
+      const confirmResponse = await this.apiService.confirmerPaiement(paiementId).toPromise();
+      
+      if (confirmResponse?.success) {
+        console.log('🎉 Paiement confirmé côté serveur');
         
-        if (response.success) {
-          console.log('🎉 Paiement confirmé côté serveur');
-          
-          this.snackBar.open('Paiement effectué avec succès !', 'Fermer', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          
-          // Rediriger vers les rendez-vous avec un délai
-          setTimeout(() => {
-            this.router.navigate(['/dashboard/patient/rendez-vous']);
-          }, 1500);
-        } else {
-          console.error('❌ Échec confirmation serveur:', response.message);
-          this.snackBar.open('Erreur de confirmation: ' + (response.message || 'Erreur inconnue'), 'Fermer', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-        }
-      },
-      error: (error) => {
-        this.isProcessing = false;
-        console.error('❌ Erreur confirmation serveur:', error);
+        this.showSuccess('Paiement effectué avec succès !');
         
-        // Le paiement a réussi côté Stripe mais a échoué côté serveur
-        // Informer l'utilisateur et lui donner des instructions
-        this.snackBar.open(
-          'Paiement traité par la banque mais erreur de synchronisation. Contactez le support si nécessaire.', 
-          'Fermer', 
-          {
-            duration: 8000,
-            panelClass: ['warning-snackbar']
-          }
-        );
-        
-        // Rediriger quand même vers les rendez-vous après un délai
+        // Redirection après délai
         setTimeout(() => {
           this.router.navigate(['/dashboard/patient/rendez-vous']);
-        }, 3000);
+        }, 1500);
+      } else {
+        throw new Error(confirmResponse?.message || 'Erreur de confirmation');
       }
-    });
+    } catch (error: any) {
+      console.error('❌ Erreur confirmation serveur:', error);
+      this.showError('Paiement traité mais erreur de synchronisation. Contactez le support si nécessaire.');
+      
+      // Rediriger quand même après un délai
+      setTimeout(() => {
+        this.router.navigate(['/dashboard/patient/rendez-vous']);
+      }, 3000);
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
   private markFormGroupTouched(): void {
@@ -330,19 +263,25 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  private handleError(message: string): void {
-    this.snackBar.open(message, 'Fermer', {
-      duration: 5000,
-      panelClass: ['error-snackbar']
-    });
-    this.router.navigate(['/dashboard/patient/rendez-vous']);
-  }
-
   private getPatientName(): string {
     if (this.rendezVous?.patient?.user) {
       return `${this.rendezVous.patient.user.prenom} ${this.rendezVous.patient.user.nom}`;
     }
     return 'Patient';
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'Fermer', {
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
   }
 
   retourner(): void {
@@ -359,25 +298,21 @@ export class PaiementComponent implements OnInit, OnDestroy, AfterViewInit {
     }).format(prix);
   }
 
-  // ===== GETTERS PUBLICS POUR LE TEMPLATE =====
+  // ===== GETTERS POUR LE TEMPLATE =====
   
   get isFormValid(): boolean {
-    return this.paiementForm.valid && this.cardMounted && !this.isProcessing && this.stripeService.isLoaded();
-  }
-
-  get patientName(): string {
-    return this.getPatientName();
+    return this.paiementForm.valid && this.cardMounted && !this.isProcessing && this.stripeService.isLoaded() && !this.stripeError;
   }
 
   get stripeReady(): boolean {
-    return this.stripeService.isLoaded() && this.cardMounted;
+    return this.stripeService.isLoaded() && this.cardMounted && !this.stripeError;
   }
 
-  get isStripeLoaded(): boolean {
-    return this.stripeService.isLoaded();
+  get hasStripeError(): boolean {
+    return !!this.stripeError;
   }
 
-  get isCardMounted(): boolean {
-    return this.cardMounted;
+  get isProduction(): boolean {
+    return false; // Toujours false en développement
   }
 }

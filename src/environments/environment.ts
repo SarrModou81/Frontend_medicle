@@ -1,76 +1,130 @@
-// src/environments/environment.ts - CONFIGURATION STRIPE AVEC CARTES DE TEST
-
+// src/environments/environment.ts - VERSION OPTIMISÉE
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8000/api',
   
-  // ===== CONFIGURATION STRIPE =====
-  stripePublicKey: 'pk_test_51S1vALReXhRDkz4r911ND4Ys1FrBBTFnuGN7J27UgiMCqw8haa8Ed5fDTMN2CKm3Zn1eezbafp47t1yeYSVXjMRj00n4p53BkU', // À remplacer par votre vraie clé
+  // 🔑 CLÉS STRIPE - OBLIGATOIRES POUR LE PAIEMENT
+  stripePublicKey: 'pk_test_51S1vALReXhRDkz4r911ND4Ys1FrBBTFnuGN7J27UgiMCqw8haa8Ed5fDTMN2CKm3Zn1eezbafp47t1yeYSVXjMRj00n4p53BkU',
   
-  // CARTES DE TEST STRIPE RECOMMANDÉES
-  stripeTestCards: {
-    // Cartes qui RÉUSSISSENT toujours
-    success: {
-      visa: '4242424242424242',
-      visaDebit: '4000056655665556',
-      mastercard: '5555555555554444',
-      americanExpress: '378282246310005',
-      discover: '6011111111111117'
-    },
-    
-    // Cartes qui ÉCHOUENT avec différents codes d'erreur
-    declined: {
-      generic: '4000000000000002',           // generic_decline
-      insufficientFunds: '4000000000009995', // insufficient_funds
-      lostCard: '4000000000009987',          // lost_card
-      stolenCard: '4000000000009979',        // stolen_card
-      expiredCard: '4000000000000069',       // expired_card
-      incorrectCvc: '4000000000000127',      // incorrect_cvc
-      processingError: '4000000000000119',   // processing_error
-      incorrectNumber: '4242424242424241'    // incorrect_number
-    },
-    
-    // Cartes nécessitant une authentification 3D Secure
-    require3DS: {
-      always: '4000002500003155',    // Toujours demander 3DS
-      ifSetup: '4000002760003184'     // 3DS si configuré
-    }
+  // 🚀 OPTIMISATIONS STRIPE
+  stripe: {
+    // Précharger Stripe dès le démarrage de l'app
+    preload: true,
+    // Timeout pour le chargement (ms)
+    loadTimeout: 1000,
+    // Retry automatique en cas d'échec
+    retryOnFailure: true,
+    // Nombre de tentatives max
+    maxRetries: 3
+  },
+  
+  // 🔧 CONFIGURATION DEBUG
+  debug: {
+    // Activer les logs détaillés en dev
+    enableLogging: true,
+    // Afficher les cartes de test
+    showTestCards: true,
+    // Simulation de lenteur réseau (ms) - 0 pour désactiver
+    networkDelay: 0
+  },
+  
+  // 🎯 CONFIGURATION API
+  api: {
+    // Timeout pour les requêtes API (ms)
+    timeout: 3000,
+    // Retry automatique pour les requêtes échouées
+    enableRetry: true,
+    // Délai entre les tentatives (ms)
+    retryDelay: 1000
   }
 };
 
-// ===== NOTES D'UTILISATION =====
-/*
-CARTES DE TEST STRIPE - GUIDE D'UTILISATION
+// 🏭 Configuration pour la production
+export const environmentProd = {
+  production: true,
+  apiUrl: 'https://votre-domaine.com/api',
+  
+  // 🔑 CLÉS STRIPE LIVE - À REMPLACER POUR LA PRODUCTION
+  stripePublicKey: 'pk_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+  
+  stripe: {
+    preload: true,
+    loadTimeout: 15000, // Plus de temps en prod
+    retryOnFailure: true,
+    maxRetries: 5
+  },
+  
+  debug: {
+    enableLogging: false, // Désactiver en production
+    showTestCards: false, // Jamais en production
+    networkDelay: 0
+  },
+  
+  api: {
+    timeout: 45000, // Plus de temps en prod
+    enableRetry: true,
+    retryDelay: 2000
+  }
+};
 
-1. CARTES QUI RÉUSSISSENT TOUJOURS :
-   - 4242 4242 4242 4242 (Visa)
-   - 5555 5555 5555 4444 (Mastercard)
-   - Utilisez n'importe quelle date future pour l'expiration
-   - Utilisez n'importe quel CVC à 3 chiffres
+// 🔍 VALIDATION DE LA CONFIGURATION
+export function validateEnvironment() {
+  const errors: string[] = [];
+  
+  // Vérifier la clé Stripe
+  if (!environment.stripePublicKey || environment.stripePublicKey === 'pk_test_51XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX') {
+    errors.push('❌ Clé publique Stripe manquante ou non configurée');
+  }
+  
+  if (!environment.stripePublicKey.startsWith('pk_')) {
+    errors.push('❌ Clé publique Stripe invalide (doit commencer par pk_)');
+  }
+  
+  // Vérifier l'URL API
+  if (!environment.apiUrl) {
+    errors.push('❌ URL API manquante');
+  }
+  
+  // Afficher les erreurs
+  if (errors.length > 0) {
+    console.error('🚨 ERREURS DE CONFIGURATION:');
+    errors.forEach(error => console.error(error));
+    console.error('📝 Vérifiez votre fichier environment.ts');
+    return false;
+  }
+  
+  console.log('✅ Configuration environment validée');
+  return true;
+}
 
-2. CARTES QUI ÉCHOUENT :
-   - 4000 0000 0000 0002 : Carte refusée (generic_decline)
-   - 4000 0000 0000 9995 : Fonds insuffisants
-   - 4000 0000 0000 0069 : Carte expirée
+// 🚀 AIDE POUR LA CONFIGURATION
+export const STRIPE_SETUP_HELP = {
+  testKey: {
+    description: '🧪 Clé de test Stripe (développement)',
+    format: 'pk_test_...',
+    source: 'https://dashboard.stripe.com/test/apikeys'
+  },
+  liveKey: {
+    description: '🔴 Clé live Stripe (production)',
+    format: 'pk_live_...',
+    source: 'https://dashboard.stripe.com/apikeys',
+    warning: '⚠️ À utiliser UNIQUEMENT en production'
+  },
+  webhookUrl: {
+    description: '🔗 URL webhook pour Stripe',
+    dev: 'http://localhost:8000/api/stripe/webhook',
+    prod: 'https://votre-domaine.com/api/stripe/webhook'
+  }
+};
 
-3. POUR TESTER LES ERREURS :
-   - Utilisez les cartes "declined" pour tester les différents types d'erreurs
-   - Vérifiez que votre interface gère correctement chaque type d'erreur
-
-4. CONFIGURATION ENVIRONNEMENT :
-   - Remplacez 'pk_test_votre_cle_publique_test' par votre vraie clé publique de test
-   - En production, utilisez environment.prod.ts avec les clés live
-
-5. MONTANTS DE TEST :
-   - Tous les montants en mode test fonctionnent
-   - Les paiements de test n'ont pas d'impact financier réel
-
-6. 3D SECURE :
-   - 4000 0025 0000 3155 : Déclenche toujours l'authentification 3D Secure
-   - Utilisez "fail" comme mot de passe pour échouer l'authentification
-   - Utilisez n'importe quoi d'autre pour réussir
-
-7. WEBHOOKS (optionnel) :
-   - Configurez les webhooks Stripe pour recevoir les événements
-   - Endpoint recommandé : /api/stripe/webhook
-*/
+// 🛠️ UTILITAIRES POUR LE DEBUG
+export function logEnvironmentInfo() {
+  if (environment.debug.enableLogging) {
+    console.group('🔧 Configuration Environment');
+    console.log('Production:', environment.production);
+    console.log('API URL:', environment.apiUrl);
+    console.log('Stripe Key:', environment.stripePublicKey ? '✅ Configurée' : '❌ Manquante');
+    console.log('Debug Mode:', environment.debug.enableLogging);
+    console.groupEnd();
+  }
+}

@@ -1,4 +1,5 @@
-/* src/app/components/patient/paiement/paiement.component.scss */
+/* src/app/components/patient/paiement/paiement.component.scss - VERSION OPTIMISÉE */
+
 .paiement-container {
   max-width: 800px;
   margin: 0 auto;
@@ -13,12 +14,18 @@
   
   .back-button {
     background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: #e0e0e0;
+    }
   }
   
   h1 {
     margin: 0;
     color: #333;
     font-size: 1.8rem;
+    font-weight: 500;
   }
 }
 
@@ -26,12 +33,13 @@
   margin-bottom: 24px;
   border-radius: 12px;
   border-left: 4px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   
   .summary-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
     
     &:last-child {
@@ -47,7 +55,8 @@
       
       .price {
         color: #4caf50;
-        font-size: 1.3rem;
+        font-size: 1.4rem;
+        font-weight: 700;
       }
     }
     
@@ -59,6 +68,7 @@
     .value {
       color: #333;
       text-align: right;
+      font-weight: 500;
     }
   }
 }
@@ -66,6 +76,7 @@
 .payment-card {
   margin-bottom: 24px;
   border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   
   .payment-method-section {
     margin-bottom: 24px;
@@ -73,19 +84,29 @@
     h3 {
       margin: 0 0 16px 0;
       color: #333;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      font-weight: 600;
     }
     
     .payment-option {
       width: 100%;
       padding: 16px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
       margin-bottom: 8px;
+      transition: all 0.3s ease;
+      background: white;
+      
+      &:hover {
+        border-color: #2196f3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+      }
       
       &.mat-radio-checked {
         background-color: #e3f2fd;
         border-color: #2196f3;
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
       }
       
       .payment-content {
@@ -94,22 +115,40 @@
         gap: 12px;
         width: 100%;
         
-        mat-icon {
-          color: #2196f3;
+        .payment-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          
+          mat-icon {
+            color: #2196f3;
+            font-size: 24px;
+          }
+          
+          span {
+            font-weight: 600;
+            color: #333;
+          }
         }
         
-        span {
-          flex: 1;
-          font-weight: 500;
+        small {
+          color: #666;
+          margin-left: auto;
         }
         
         .card-icons {
           display: flex;
+          align-items: center;
           gap: 8px;
+          margin-left: auto;
           
           .card-icon {
-            height: 24px;
-            width: auto;
+            font-size: 20px;
+          }
+          
+          .card-text {
+            font-size: 12px;
+            color: #666;
           }
         }
       }
@@ -122,62 +161,101 @@
     h3 {
       margin: 0 0 16px 0;
       color: #333;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .stripe-status {
+      margin-bottom: 16px;
+      
+      .stripe-loading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        border-radius: 12px;
+        color: #1976d2;
+        font-weight: 500;
+        
+        mat-spinner {
+          flex-shrink: 0;
+        }
+      }
+      
+      .stripe-error {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #ffebee;
+        border-radius: 12px;
+        color: #d32f2f;
+        border-left: 4px solid #f44336;
+        
+        mat-icon {
+          color: #f44336;
+        }
+        
+        button {
+          margin-left: auto;
+        }
+      }
     }
     
     .card-element-container {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 16px;
-      background: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 20px;
+      background: white;
+      transition: all 0.3s ease;
+      position: relative;
+      min-height: 120px;
+      
+      &.disabled {
+        opacity: 0.6;
+        pointer-events: none;
+        background: #f5f5f5;
+      }
+      
+      &.ready {
+        border-color: #4caf50;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+      }
       
       .card-element {
-        padding: 12px;
+        padding: 16px;
+        min-height: 40px;
         
         &.StripeElement--focus {
-          border-color: #2196f3;
-          box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+          outline: none;
         }
       }
       
       .card-errors {
         color: #f44336;
         font-size: 14px;
-        margin-top: 8px;
+        font-weight: 500;
+        margin-top: 12px;
         min-height: 20px;
+        padding: 8px;
+        background: rgba(244, 67, 54, 0.1);
+        border-radius: 8px;
+        border-left: 4px solid #f44336;
       }
     }
-  }
-  
-  .security-section {
-    margin-bottom: 24px;
     
-    .security-info {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 16px;
-      background-color: #e8f5e8;
+    .test-cards {
+      margin-top: 16px;
+      padding: 12px;
+      background: #fff3cd;
       border-radius: 8px;
-      border-left: 4px solid #4caf50;
+      border-left: 4px solid #ffc107;
       
-      mat-icon {
-        color: #4caf50;
-        margin-top: 2px;
-      }
-      
-      div {
-        flex: 1;
-        
-        p {
-          margin: 0 0 4px 0;
-          
-          &:last-child {
-            margin-bottom: 0;
-            font-size: 0.9rem;
-            color: #666;
-          }
-        }
+      small {
+        color: #856404;
+        font-size: 12px;
+        line-height: 1.4;
       }
     }
   }
@@ -187,10 +265,12 @@
     
     mat-checkbox {
       font-size: 14px;
+      line-height: 1.4;
       
       a {
         color: #2196f3;
         text-decoration: none;
+        font-weight: 500;
         
         &:hover {
           text-decoration: underline;
@@ -203,78 +283,171 @@
 .payment-actions {
   display: flex;
   justify-content: space-between;
-  padding: 16px 24px;
+  gap: 16px;
+  padding: 20px 24px;
   border-top: 1px solid #e0e0e0;
+  background: #fafafa;
   
   .pay-button {
     min-width: 200px;
-    height: 48px;
+    height: 50px;
     font-size: 16px;
     font-weight: 600;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    
+    &:not(:disabled) {
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      color: white;
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+      }
+    }
+    
+    &:disabled {
+      background-color: #f5f5f5 !important;
+      color: #999 !important;
+      cursor: not-allowed;
+      
+      .mat-button-wrapper {
+        opacity: 0.6;
+      }
+    }
     
     .spinner {
       animation: spin 1s linear infinite;
       margin-right: 8px;
+      font-size: 18px;
+    }
+    
+    span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   }
 }
 
-.info-card {
+.security-card {
   border-radius: 12px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+  border-left: 4px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
   
-  h3 {
-    margin: 0 0 16px 0;
-    color: #333;
-  }
-  
-  ul {
-    margin: 0;
-    padding-left: 20px;
+  .security-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
     
-    li {
-      margin-bottom: 8px;
-      color: #555;
-      line-height: 1.4;
+    mat-icon {
+      color: #4caf50;
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    
+    div {
+      flex: 1;
       
-      &:last-child {
-        margin-bottom: 0;
+      h4 {
+        margin: 0 0 8px 0;
+        color: #2e7d32;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0 0 12px 0;
+        color: #555;
+        line-height: 1.5;
+      }
+      
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        
+        li {
+          margin-bottom: 4px;
+          color: #555;
+          font-size: 14px;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
       }
     }
   }
 }
 
 .loading-container {
-  text-align: center;
-  padding: 60px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
   
-  mat-spinner {
-    margin: 0 auto 20px;
-  }
-  
-  p {
-    color: #666;
+  .loading-content {
+    text-align: center;
+    
+    mat-spinner {
+      margin: 0 auto 24px;
+    }
+    
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    p {
+      margin: 0;
+      color: #666;
+    }
   }
 }
 
+// Animations optimisées
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
+@keyframes fadeInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.payment-card, .rdv-summary-card, .security-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+// Responsive optimisé
 @media (max-width: 768px) {
   .paiement-container {
     padding: 16px;
   }
   
-  .page-header h1 {
-    font-size: 1.5rem;
+  .page-header {
+    h1 {
+      font-size: 1.5rem;
+    }
   }
   
   .summary-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 8px;
     
     .value {
       text-align: left;
@@ -287,131 +460,28 @@
     
     .pay-button {
       width: 100%;
+      min-width: unset;
     }
   }
-}
-/* Ajouter à paiement.component.scss */
-
-.stripe-status {
-  margin-bottom: 16px;
   
-  .stripe-loading {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background-color: #e3f2fd;
-    border-radius: 8px;
-    color: #1976d2;
-    font-size: 14px;
-  }
-}
-
-.card-element-container {
-  position: relative;
-  
-  &.disabled {
-    opacity: 0.6;
-    pointer-events: none;
-  }
-  
-  .stripe-not-ready {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #666;
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px 16px;
-    border-radius: 4px;
+  .security-info {
+    flex-direction: column;
+    text-align: center;
     
     mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+      align-self: center;
     }
   }
 }
 
-.debug-info {
-  border-left: 4px solid #2196f3;
-  background: #e3f2fd !important;
-  color: #1976d2;
-}
-
-.pay-button {
-  &:disabled {
-    background-color: #f5f5f5 !important;
-    color: #999 !important;
-    
-    .mat-button-wrapper {
-      opacity: 0.6;
-    }
+@media (max-width: 480px) {
+  .card-element-container {
+    padding: 16px;
   }
   
-  span {
-    display: flex;
-    align-items: center;
+  .payment-option .payment-content {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
-  }
-}
-
-// Animation pour le spinner
-@keyframes stripe-pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-.stripe-loading mat-spinner {
-  animation: stripe-pulse 2s infinite;
-}
-
-// Amélioration de l'élément Stripe
-.card-element {
-  &.StripeElement {
-    background: white;
-    padding: 12px 16px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    transition: border-color 0.3s ease;
-    
-    &:hover {
-      border-color: #aaa;
-    }
-    
-    &.StripeElement--focus {
-      border-color: #2196f3 !important;
-      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2) !important;
-    }
-    
-    &.StripeElement--invalid {
-      border-color: #f44336 !important;
-    }
-    
-    &.StripeElement--complete {
-      border-color: #4caf50 !important;
-    }
-  }
-}
-
-// État de chargement pour toute la section
-.card-section {
-  position: relative;
-  
-  &.loading::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.8);
-    z-index: 1;
-    border-radius: 8px;
   }
 }

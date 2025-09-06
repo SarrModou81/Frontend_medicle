@@ -1,4 +1,4 @@
-<!-- src/app/components/patient/paiement/paiement.component.html - VERSION CORRIGÉE -->
+<!-- src/app/components/patient/paiement/paiement.component.html - VERSION OPTIMISÉE -->
 <div class="paiement-container" *ngIf="!isLoading">
   <div class="page-header">
     <button mat-icon-button (click)="retourner()" class="back-button">
@@ -66,48 +66,42 @@
           </mat-radio-group>
         </div>
 
-        <!-- Formulaire de carte -->
+        <!-- Formulaire de carte - VERSION OPTIMISÉE -->
         <div class="card-section" *ngIf="paiementForm.get('methode')?.value === 'stripe'">
           <h3>Informations de carte</h3>
           
-          <!-- Status de Stripe -->
+          <!-- Affichage optimisé du statut -->
           <div class="stripe-status" *ngIf="!stripeReady">
-            <div class="stripe-loading">
+            <div class="stripe-loading" *ngIf="!hasStripeError">
               <mat-spinner diameter="20"></mat-spinner>
-              <span>Initialisation du système de paiement...</span>
+              <span>Chargement du système de paiement...</span>
+            </div>
+            
+            <!-- Erreur Stripe -->
+            <div class="stripe-error" *ngIf="hasStripeError">
+              <mat-icon>error</mat-icon>
+              <span>{{ stripeError }}</span>
+              <button mat-button color="primary" (click)="initializeStripe()">
+                Réessayer
+              </button>
             </div>
           </div>
           
-          <!-- Debug info (à retirer en production) -->
-          <div class="debug-info" *ngIf="false" style="background: #f0f0f0; padding: 10px; margin: 10px 0; font-size: 12px;">
-            <strong>Debug Stripe:</strong><br>
-            Service chargé: {{ isStripeLoaded }}<br>
-            Carte montée: {{ isCardMounted }}<br>
-            Prêt: {{ stripeReady }}
-          </div>
-          
-          <div class="card-element-container" [class.disabled]="!stripeReady">
+          <!-- Élément carte optimisé -->
+          <div class="card-element-container" [class.ready]="stripeReady" [class.disabled]="!stripeReady">
             <div id="card-element" class="card-element">
               <!-- Stripe Elements injectera le formulaire de carte ici -->
             </div>
             <div id="card-errors" class="card-errors" role="alert"></div>
-            
-            <!-- Message si Stripe n'est pas prêt -->
-            <div *ngIf="!stripeReady" class="stripe-not-ready">
-              <mat-icon>warning</mat-icon>
-              <span>Chargement du système de paiement en cours...</span>
-            </div>
           </div>
-        </div>
 
-        <!-- Sécurité -->
-        <div class="security-section">
-          <div class="security-info">
-            <mat-icon>security</mat-icon>
-            <div>
-              <p><strong>Paiement 100% sécurisé</strong></p>
-              <p>Vos données bancaires sont chiffrées et ne sont jamais stockées sur nos serveurs.</p>
-            </div>
+          <!-- Cartes de test (dev seulement) -->
+          <div class="test-cards" *ngIf="!isProduction">
+            <small>
+              <strong>Cartes de test :</strong><br>
+              Succès : 4242 4242 4242 4242<br>
+              Échec : 4000 0000 0000 0002
+            </small>
           </div>
         </div>
 
@@ -132,29 +126,40 @@
               [disabled]="!isFormValid"
               class="pay-button">
         <mat-icon *ngIf="isProcessing" class="spinner">refresh</mat-icon>
-        <span *ngIf="!stripeReady && !isProcessing">Initialisation...</span>
+        
+        <!-- États du bouton optimisés -->
+        <span *ngIf="!stripeReady && !isProcessing && !hasStripeError">Chargement...</span>
+        <span *ngIf="hasStripeError && !isProcessing">Système indisponible</span>
         <span *ngIf="stripeReady && !isProcessing">Payer {{ formatPrix(rendezVous?.montant || 0) }}</span>
-        <span *ngIf="isProcessing">Traitement...</span>
+        <span *ngIf="isProcessing">Traitement en cours...</span>
       </button>
     </mat-card-actions>
   </mat-card>
 
-  <!-- Informations complémentaires -->
-  <mat-card class="info-card">
+  <!-- Sécurité -->
+  <mat-card class="security-card">
     <mat-card-content>
-      <h3>Informations importantes</h3>
-      <ul>
-        <li>Votre rendez-vous sera confirmé après validation du paiement</li>
-        <li>En cas d'annulation, le remboursement se fera dans un délai de 3 à 5 jours ouvrés</li>
-        <li>Un justificatif PDF sera automatiquement généré après votre consultation</li>
-        <li>Vous recevrez une confirmation par email</li>
-      </ul>
+      <div class="security-info">
+        <mat-icon>security</mat-icon>
+        <div>
+          <h4>Paiement 100% sécurisé</h4>
+          <p>Vos données bancaires sont chiffrées et protégées par Stripe, leader mondial de la sécurité des paiements en ligne.</p>
+          <ul>
+            <li>Chiffrement SSL 256 bits</li>
+            <li>Certification PCI DSS Level 1</li>
+            <li>Aucune donnée bancaire stockée</li>
+          </ul>
+        </div>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>
 
-<!-- Chargement -->
+<!-- Chargement initial optimisé -->
 <div *ngIf="isLoading" class="loading-container">
-  <mat-spinner></mat-spinner>
-  <p>Chargement...</p>
+  <div class="loading-content">
+    <mat-spinner diameter="50"></mat-spinner>
+    <h3>Préparation du paiement</h3>
+    <p>Chargement des informations...</p>
+  </div>
 </div>

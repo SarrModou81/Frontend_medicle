@@ -1,4 +1,4 @@
-// src/app/services/stripe.service.ts
+// src/app/services/stripe.service.ts - VERSION OPTIMISÉE ET RAPIDE
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
@@ -10,124 +10,130 @@ declare var Stripe: any;
 export class StripeService {
   private stripe: any = null;
   private elements: any = null;
-  private stripeLoaded = false;
   private loadingPromise: Promise<void> | null = null;
+  private isReady = false;
 
-  constructor() {}
+  constructor() {
+    console.log('🔧 StripeService - Initialisation optimisée');
+  }
 
   /**
-   * Charger Stripe de manière asynchrone
+   * Chargement optimisé de Stripe
    */
-  loadStripe(): Promise<void> {
-    // Si déjà en cours de chargement, retourner la même promesse
+  async loadStripe(): Promise<void> {
+    // Si déjà prêt, retourner immédiatement
+    if (this.isReady && this.stripe) {
+      return Promise.resolve();
+    }
+
+    // Si déjà en cours de chargement, attendre
     if (this.loadingPromise) {
       return this.loadingPromise;
     }
 
-    // Si déjà chargé, résoudre immédiatement
-    if (this.stripeLoaded && this.stripe) {
-      return Promise.resolve();
+    // Vérifier la clé publique
+    if (!environment.stripePublicKey) {
+      throw new Error('Clé publique Stripe manquante');
     }
 
-    // Vérifier si Stripe est déjà disponible globalement
+    // Si Stripe est déjà chargé globalement
     if (typeof Stripe !== 'undefined') {
       this.initializeStripe();
       return Promise.resolve();
     }
 
-    // Charger le script Stripe
-    this.loadingPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://js.stripe.com/v3/';
-      script.onload = () => {
-        try {
-          this.initializeStripe();
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      };
-      script.onerror = () => {
-        reject(new Error('Impossible de charger Stripe'));
-      };
-      document.head.appendChild(script);
-    });
-
+    // Créer la promesse de chargement
+    this.loadingPromise = this.loadStripeScript();
     return this.loadingPromise;
   }
 
   /**
-   * Initialiser Stripe avec la clé publique
+   * Chargement optimisé du script Stripe
+   */
+  private loadStripeScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Vérifier si le script existe déjà
+      const existingScript = document.querySelector('script[src*="stripe.com"]');
+      if (existingScript) {
+        this.initializeStripe();
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://js.stripe.com/v3/';
+      script.async = true;
+      
+      script.onload = () => {
+        try {
+          console.log('✅ Script Stripe chargé');
+          this.initializeStripe();
+          resolve();
+        } catch (error) {
+          console.error('❌ Erreur initialisation Stripe:', error);
+          reject(error);
+        }
+      };
+
+      script.onerror = () => {
+        console.error('❌ Impossible de charger Stripe');
+        reject(new Error('Impossible de charger Stripe'));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * Initialisation simplifiée
    */
   private initializeStripe(): void {
-    if (!environment.stripePublicKey) {
-      throw new Error('Clé publique Stripe manquante dans la configuration');
+    try {
+      this.stripe = Stripe(environment.stripePublicKey);
+      this.elements = this.stripe.elements();
+      this.isReady = true;
+      console.log('✅ Stripe initialisé rapidement');
+    } catch (error) {
+      console.error('❌ Erreur initialisation Stripe:', error);
+      throw error;
     }
-
-    if (typeof Stripe === 'undefined') {
-      throw new Error('Stripe n\'est pas chargé');
-    }
-
-    this.stripe = Stripe(environment.stripePublicKey);
-    this.elements = this.stripe.elements();
-    this.stripeLoaded = true;
-    
-    console.log('✅ Stripe initialisé avec succès');
   }
 
   /**
-   * Obtenir l'instance Stripe
+   * Créer un élément de carte optimisé
    */
-  getStripe(): any {
-    if (!this.stripe) {
-      throw new Error('Stripe n\'est pas encore initialisé. Appelez loadStripe() d\'abord.');
+  createCardElement(): any {
+    if (!this.isReady) {
+      throw new Error('Stripe non prêt. Appelez loadStripe() d\'abord.');
     }
-    return this.stripe;
-  }
 
-  /**
-   * Obtenir les éléments Stripe
-   */
-  getElements(): any {
-    if (!this.elements) {
-      throw new Error('Stripe Elements n\'est pas encore initialisé. Appelez loadStripe() d\'abord.');
-    }
-    return this.elements;
-  }
-
-  /**
-   * Créer un élément de carte
-   */
-  createCardElement(options?: any): any {
-    const defaultOptions = {
+    const options = {
       style: {
         base: {
-          color: '#424770',
-          fontFamily: '"Roboto", "Helvetica Neue", Helvetica, sans-serif',
-          fontSmoothing: 'antialiased',
           fontSize: '16px',
+          color: '#424770',
           '::placeholder': {
             color: '#aab7c4'
           }
         },
         invalid: {
-          color: '#9e2146',
-          iconColor: '#9e2146'
+          color: '#9e2146'
         }
       },
       hidePostalCode: true
     };
 
-    const finalOptions = { ...defaultOptions, ...options };
-    return this.getElements().create('card', finalOptions);
+    return this.elements.create('card', options);
   }
 
   /**
-   * Confirmer un paiement par carte
+   * Confirmer le paiement - Version simplifiée
    */
   async confirmCardPayment(clientSecret: string, card: any, billingDetails?: any): Promise<any> {
-    const stripe = this.getStripe();
-    
+    if (!this.isReady) {
+      throw new Error('Stripe non prêt');
+    }
+
     const paymentData: any = {
       payment_method: {
         card: card
@@ -138,33 +144,42 @@ export class StripeService {
       paymentData.payment_method.billing_details = billingDetails;
     }
 
-    return await stripe.confirmCardPayment(clientSecret, paymentData);
+    return await this.stripe.confirmCardPayment(clientSecret, paymentData);
   }
 
   /**
-   * Vérifier si Stripe est chargé
+   * Vérifier si Stripe est prêt
    */
   isLoaded(): boolean {
-    return this.stripeLoaded && !!this.stripe;
+    return this.isReady;
   }
 
   /**
-   * Traduire les erreurs Stripe
+   * Messages d'erreur en français
    */
   translateError(message: string): string {
     const translations: { [key: string]: string } = {
-      'Your card number is incomplete.': 'Votre numéro de carte est incomplet.',
-      'Your card number is invalid.': 'Votre numéro de carte est invalide.',
-      'Your card\'s expiration date is incomplete.': 'La date d\'expiration de votre carte est incomplète.',
-      'Your card\'s expiration date is invalid.': 'La date d\'expiration de votre carte est invalide.',
-      'Your card\'s security code is incomplete.': 'Le code de sécurité de votre carte est incomplet.',
-      'Your card\'s security code is invalid.': 'Le code de sécurité de votre carte est invalide.',
-      'Your card was declined.': 'Votre carte a été refusée.',
-      'Your card has insufficient funds.': 'Votre carte a des fonds insuffisants.',
-      'Your card has expired.': 'Votre carte a expiré.',
-      'An error occurred while processing your card.': 'Une erreur s\'est produite lors du traitement de votre carte.'
+      'Your card number is incomplete.': 'Numéro de carte incomplet',
+      'Your card number is invalid.': 'Numéro de carte invalide',
+      'Your card\'s expiration date is incomplete.': 'Date d\'expiration incomplète',
+      'Your card\'s expiration date is invalid.': 'Date d\'expiration invalide',
+      'Your card\'s security code is incomplete.': 'Code de sécurité incomplet',
+      'Your card\'s security code is invalid.': 'Code de sécurité invalide',
+      'Your card was declined.': 'Carte refusée',
+      'Your card has insufficient funds.': 'Fonds insuffisants',
+      'Your card has expired.': 'Carte expirée'
     };
 
     return translations[message] || message;
+  }
+
+  /**
+   * Réinitialiser en cas d'erreur
+   */
+  reset(): void {
+    this.stripe = null;
+    this.elements = null;
+    this.isReady = false;
+    this.loadingPromise = null;
   }
 }

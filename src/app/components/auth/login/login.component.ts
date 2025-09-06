@@ -193,9 +193,9 @@ private redirectBasedOnRole(role: string): void {
     this.isLoading = true;
     
     const credentials = {
-      'patient': { email: 'patient@test.com', password: 'password123' },
-      'medecin': { email: 'medecin@test.com', password: 'password123' },
-      'admin': { email: 'admin@medical.com', password: 'password123' }
+      'patient': { email: 'aminata.ndiaye@email.sn', password: 'patient123' },
+      'medecin': { email: 'dr.ousmane.ba@medical.sn', password: 'medecin123' },
+      'admin': { email: 'admin@medical.sn', password: 'admin123' }
     };
 
     console.log(`Connexion démo ${role} avec:`, credentials[role]);
